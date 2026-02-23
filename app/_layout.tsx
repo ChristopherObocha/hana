@@ -19,14 +19,17 @@ function RouteGuard() {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      router.replace('/(auth)/log-in');
+      router.replace('/(auth)/login');
     }
   }, [isLoggedIn, router]);
 
+  const initialRoute = isLoggedIn ? '(tabs)' : '(auth)';
+
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(auth)" />
+      <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
     </Stack>
   );
 }
@@ -36,8 +39,8 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <RouteGuard />
       <StatusBar style="auto" />
+      <RouteGuard />
     </ThemeProvider>
   );
 }

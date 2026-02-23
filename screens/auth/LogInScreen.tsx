@@ -1,12 +1,12 @@
 import { StyleSheet, Text } from "react-native";
 import React from "react";
-import { Link } from "expo-router";
 
-import ScreenContainer from "@/components/containers/ScreenContainer";
+import { ScreenContainer, Spacer } from "@/components";
 
 const LogInScreen = () => {
   return (
     <ScreenContainer>
+      <Spacer size={24} vertical />
       <Text>Welcome to Runwae🎉</Text>
       {/* <Text>Login to your account or <Link href="(auth)/sign-up">sign up here.</Link></Text> */}
     </ScreenContainer>
