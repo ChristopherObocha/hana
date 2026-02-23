@@ -21,7 +21,7 @@ const ScreenContainer = ({ children, scrollView = false, scrollViewProps }: Scre
   );
   
   return (
-    <View style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
+    <View style={{ paddingTop: insets.top, paddingBottom: insets.bottom, paddingHorizontal: 16 }}>
       {content}
     </View>
   );
