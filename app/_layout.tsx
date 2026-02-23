@@ -2,6 +2,8 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
+// import { useFonts } from 'expo-font';
+import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useEffect } from 'react';
@@ -39,8 +41,10 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <StatusBar style="auto" />
-      <RouteGuard />
+      <KeyboardProvider>
+        <StatusBar style="auto" />
+        <RouteGuard />
+      </KeyboardProvider>
     </ThemeProvider>
   );
 }

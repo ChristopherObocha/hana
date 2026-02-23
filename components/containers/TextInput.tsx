@@ -52,8 +52,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   label: {
-    fontSize: 16,
-    fontWeight: 'bold',
+
   },
   requiredText: {
     color: 'red',
