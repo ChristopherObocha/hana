@@ -15,7 +15,10 @@ import { supabase } from "@/utils/supabase/client";
 import { uploadProfileImage } from "@/utils/supabase/storage";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
-import { KeyboardAwareScrollView, KeyboardToolbar } from "react-native-keyboard-controller";
+import { 
+  KeyboardAwareScrollView, 
+  // KeyboardToolbar  // Commented out to avoid warning, will add after physical device testing
+} from "react-native-keyboard-controller";
 
 export default function UserOnboardingScreen() {
   const insets = useSafeAreaInsets();
