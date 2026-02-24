@@ -1,5 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 // import { useFonts } from 'expo-font';
@@ -7,6 +7,8 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useEffect } from 'react';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { ActivityIndicator, View } from "react-native";
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -14,21 +16,43 @@ export const unstable_settings = {
 
 function RouteGuard() {
   const router = useRouter();
-  const isLoggedIn = false;
+  const { user, isLoading } = useAuth();
+  const segments = useSegments();
 
-  // const inAuthGroup = segments[0] === "(auth)";
-  // const inTabsGroup = segments[0] === "(tabs)";
+
+  const inAuthGroup = segments[0] === "(auth)";
+  const inTabsGroup = segments[0] === "(tabs)";
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      router.replace('/(auth)/login');
+    if (isLoading) return;
+    if (!user) {
+      if (!inAuthGroup) {
+        router.replace("/(auth)/login");
+      }
+    } else if (!user.onboardingCompleted) {
+      if (segments.join("/") !== "(auth)/onboarding") {
+        router.replace("/(auth)/onboarding");
+      }
+    } else {
+      if (!inTabsGroup) {
+        router.replace("/(tabs)");
+      }
     }
-  }, [isLoggedIn, router]);
 
-  const initialRoute = isLoggedIn ? '(tabs)' : '(auth)';
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, segments, router]);
+
+  //Change to splash screen
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
-    <Stack initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
@@ -42,8 +66,10 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <KeyboardProvider>
-        <StatusBar style="auto" />
-        <RouteGuard />
+        <AuthProvider>
+          <StatusBar style="auto" />
+          <RouteGuard />
+        </AuthProvider>
       </KeyboardProvider>
     </ThemeProvider>
   );
