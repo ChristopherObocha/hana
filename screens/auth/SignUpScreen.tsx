@@ -19,6 +19,8 @@ const SignUpScreen = () => {
   const { signUp } = useAuth();
 
   const handleSignUp = async () => {
+    console.log("email: ", email);
+    console.log("password: ", password);
     if (!email || !password) {
       Alert.alert("Error", "Please fill in all fields");
     }
@@ -42,7 +44,7 @@ const SignUpScreen = () => {
   return (
     <>
       <KeyboardAwareScrollView 
-        bottomOffset={62} 
+        bottomOffset={162} 
         contentContainerStyle={[styles.contentContainer, { paddingTop: insets.top + 24 }]}
         >
       <Spacer size={24} vertical />
@@ -82,7 +84,8 @@ const SignUpScreen = () => {
         style={styles.input}
       />
 
-      <Spacer size={120} vertical />
+
+      <Spacer size={40} vertical />
       <TouchableOpacity style={styles.button} onPress={handleSignUp}>
         {isLoading ? (
           <ActivityIndicator size={24} color="#fff" />
@@ -116,6 +119,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff'
   },
   contentContainer: {
+    flexGrow: 1,
     paddingHorizontal: 16,
     paddingBottom: 40
   },
