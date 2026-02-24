@@ -19,8 +19,6 @@ const SignUpScreen = () => {
   const { signUp } = useAuth();
 
   const handleSignUp = async () => {
-    console.log("email: ", email);
-    console.log("password: ", password);
     if (!email || !password) {
       Alert.alert("Error", "Please fill in all fields");
     }
