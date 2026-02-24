@@ -30,15 +30,15 @@ export const uploadProfileImage = async (userId: string, imageUri: string) => {
   }
 };
 
-export const uploadPostImage = async (userId: string, imageUri: string) => {
+export const uploadTripImage = async (tripId: string, imageUri: string) => {
   try {
     const fileExtension = imageUri.split(".").pop() || "jpg";
-    const fileName = `${userId}/${Date.now()}.${fileExtension}`;
+    const fileName = `${tripId}/${Date.now()}.${fileExtension}`;
     const file = new File(imageUri);
     const bytes = await file.bytes();
 
     const { error } = await supabase.storage
-      .from("posts")
+      .from("trips")
       .upload(fileName, bytes, {
         contentType: `image/${fileExtension}`,
         upsert: false,
@@ -49,7 +49,7 @@ export const uploadPostImage = async (userId: string, imageUri: string) => {
     }
 
     const { data: urlData } = supabase.storage
-      .from("posts")
+      .from("trips")
       .getPublicUrl(fileName);
 
     return urlData.publicUrl;
