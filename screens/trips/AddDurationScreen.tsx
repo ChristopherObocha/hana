@@ -1,4 +1,4 @@
-import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from "react-native";
 import React, { useMemo } from "react";
 import dayjs from 'dayjs'
 import { ArrowRight } from 'lucide-react-native'
@@ -8,10 +8,15 @@ import { Spacer, Text } from "@/components";
 import { Colors, textStyles } from "@/constants";
 import {
   Calendar,
+  CalendarTheme,
   toDateId,
   useDateRange,
 } from "@marceloterreiro/flash-calendar";
+import { useRouter, useLocalSearchParams } from "expo-router";
+
+
 import { useTrips } from "@/context/TripsContext";
+
 
 export default function AddDurationScreen() {
   const { updateTripDetails, isLoading } = useTrips();
@@ -20,18 +25,9 @@ export default function AddDurationScreen() {
     onCalendarDayPress,
     dateRange
   } = useDateRange();
+  const { tripId } = useLocalSearchParams<{ tripId: string }>();  
+  const router = useRouter();
 
-  // const handleConfirm = async () => {
-  //   if (!calendarActiveDateRanges.startId || !calendarActiveDateRanges.endId) {
-  //     Alert.alert("Select dates", "Please select a start and end date.");
-  //     return;
-  //   }
-  //   try {
-  //     await updateTripDetails(tripId, { start_date: calendarActiveDateRanges.startId, end_date: calendarActiveDateRanges.endId });
-  //   }
-  // };
-
-  
   const startDate = useMemo(() => {
     return dateRange?.startId ?? null;
   }, [dateRange]);
@@ -39,6 +35,55 @@ export default function AddDurationScreen() {
   const endDate = useMemo(() => {
     return dateRange?.endId ?? null;
   }, [dateRange]);
+
+  const handleConfirm = async () => {
+    if (!startDate || !endDate) {
+      Alert.alert("Select dates", "Please select a start and end date.");
+      return;
+    }
+    try {
+      await updateTripDetails(tripId, { start_date: startDate, end_date: endDate });
+      Alert.alert("Success", "Duration updated successfully!");
+      router.back();
+    } catch (error) {
+      Alert.alert("Error", "Failed to update duration. Please try again.");
+      console.error(error);
+    }
+  };
+
+  const calendarTheme: CalendarTheme = {
+    rowMonth: {
+      content: {
+        color: Colors.light.textHeading,
+        ...textStyles.textBody16,
+      },
+    },
+    itemDay: {
+      idle: ({ isPressed, isWeekend }) => ({
+        container: {
+          backgroundColor: isPressed ? Colors.light.primary : 'transparent',
+          borderRadius: 9999,
+        },
+        content: {
+        },
+      }),
+      active: () => ({
+        container: {
+          backgroundColor: Colors.light.primary,
+        },
+        content: {
+          color: Colors.light.background,
+        },
+      }),
+    },
+    itemDayContainer: {
+      activeDayFiller: {
+        borderWidth: 1,
+        borderColor: Colors.light.primary,
+      },
+      
+    },
+  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ flexGrow: 1, paddingTop: 32 }} >
@@ -56,6 +101,8 @@ export default function AddDurationScreen() {
             onCalendarDayPress={onCalendarDayPress} 
             calendarMinDateId={toDateId(new Date())}
             calendarMaxDateId={toDateId(new Date(new Date().getFullYear() + 2, 11, 31))}
+            theme={calendarTheme}
+            calendarRowHorizontalSpacing={0}
           />
         </View>
 
@@ -77,7 +124,7 @@ export default function AddDurationScreen() {
 
         <Spacer size={8} vertical />
 
-        <TouchableOpacity style={styles.button} onPress={() => {}}>
+        <TouchableOpacity style={styles.button} onPress={handleConfirm}>
           <Text style={styles.buttonText}>
             {isLoading ? "Saving..." : "Confirm Dates"}
           </Text>
