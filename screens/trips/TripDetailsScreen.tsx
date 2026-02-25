@@ -80,10 +80,10 @@ export default function TripDetailScreen() {
           <Text style={styles.title}>{activeTrip?.name}</Text>
         </View>
       </ImageBackground>
-      <Spacer size={16} vertical />
 
 
       <View style={styles.content}>
+        <Spacer size={16} vertical />
         <Text style={styles.title}>{activeTrip?.name}</Text>
         <Spacer size={8} vertical />
 
@@ -91,8 +91,11 @@ export default function TripDetailScreen() {
           <Pressable onPress={() => router.push(`/(tabs)/(trips)/${activeTrip?.id}/add-destination`)} style={styles.infoButton}>
             <Text style={styles.infoButtonText}>{`📍 ${details?.destination_label ?? 'Add Destination'}`}</Text>
           </Pressable>
-        </View>
 
+          <Pressable onPress={() => router.push(`/(tabs)/(trips)/${activeTrip?.id}/add-duration`)} style={styles.infoButton}>
+            <Text style={styles.infoButtonText}>{`🗓️ ${details?.start_date ?? 'Add a  trip duration'}`}</Text>
+          </Pressable>
+        </View>
         <Spacer size={8} vertical />
         <Text style={styles.description}>{activeTrip?.description}</Text>
       </View>
@@ -110,7 +113,9 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   content: {
+    flex: 1,
     paddingHorizontal: 16,
+    backgroundColor: Colors.light.background,
   },
   header: {
     padding: 16,
@@ -123,6 +128,8 @@ const styles = StyleSheet.create({
   },
   infoButtonContainer: {
     alignSelf: 'flex-start',  // 👈 important
+    flexDirection: 'row',
+    gap: 8,
   },
   
   infoButton: {
