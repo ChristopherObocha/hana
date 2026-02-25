@@ -1,7 +1,6 @@
 import { View, Text, Pressable, ImageBackground, StyleSheet } from "react-native";
 import React, { useMemo } from "react";
 import { router } from "expo-router";
-import { BlurView } from "expo-blur";
 
 import type { Trip } from "@/hooks/useTripActions";
 import { useAuth } from "@/context/AuthContext";

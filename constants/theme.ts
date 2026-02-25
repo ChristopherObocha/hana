@@ -24,6 +24,7 @@ export const Colors = {
     textBody: '#6C757D',
     textHeading: '#0D0F12',
     textSubtle: '#ADB5BD',
+    textSubtitle: '#A8A8A8',
     iconDefault: '#343A40',
   },
   dark: {
@@ -38,6 +39,7 @@ export const Colors = {
     textBody: '#6C757D',
     textHeading: '#0D0F12',
     textSubtle: '#ADB5BD',
+    textSubtitle: '#A8A8A8',
     iconDefault: '#343A40',
   },
 };

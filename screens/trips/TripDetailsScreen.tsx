@@ -1,6 +1,6 @@
 import { View, StyleSheet, Alert, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ImageBackground } from 'expo-image';
 
@@ -16,13 +16,17 @@ export default function TripDetailScreen() {
   const { user } = useAuth();
   const { activeTrip, loadTrip, clearActiveTrip, deleteTrip, leaveTrip, isLoading } = useTrips();
 
-  // Load trip when screen comes into focus, clear on blur
-  useFocusEffect(
-    useCallback(() => {
-      loadTrip(tripId);
-      return () => clearActiveTrip();
-    }, [tripId])
-  );
+  // // Load trip when screen comes into focus, clear on blur
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     loadTrip(tripId);
+  //     return () => clearActiveTrip();
+  //   }, [tripId])
+  // );
+
+  useEffect(() => {
+    loadTrip(tripId);
+  }, [tripId, loadTrip]);
 
   const isOwner = activeTrip?.owner_id === user?.id;
 
@@ -70,7 +74,6 @@ export default function TripDetailScreen() {
       <ImageBackground 
         source={activeTrip?.cover_image_url ? { uri: activeTrip?.cover_image_url } : undefined} 
         style={styles.backgroundImage}
-        // imageStyle={{ height: 350 }}
         contentFit="cover"
       >
         <View style={[styles.header, { paddingTop: insets.top + 24 }] }>
@@ -86,7 +89,7 @@ export default function TripDetailScreen() {
 
         <View style={styles.infoButtonContainer}>
           <Pressable onPress={() => router.push(`/(tabs)/(trips)/${activeTrip?.id}/add-destination`)} style={styles.infoButton}>
-            <Text style={styles.infoButtonText}>📍 Add Destination</Text>
+            <Text style={styles.infoButtonText}>{`📍 ${details?.destination_label ?? 'Add Destination'}`}</Text>
           </Pressable>
         </View>
 
@@ -119,17 +122,19 @@ const styles = StyleSheet.create({
     ...textStyles.textBody12,
   },
   infoButtonContainer: {
-    maxWidth: "50%",
+    alignSelf: 'flex-start',  // 👈 important
   },
+  
   infoButton: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: Colors.light.borderDefault,
-    width: "100%",
+    alignSelf: 'flex-start',  // 👈 makes it size to content
   },
   infoButtonText: {
     ...textStyles.textBody12,
+    color: Colors.light.textSubtitle,
   },
 });
