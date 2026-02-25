@@ -4,7 +4,7 @@ import { useCallback, useEffect } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ImageBackground } from 'expo-image';
 
-import { Spacer, Text } from '@/components';
+import { AvatarGroup, Spacer, Text } from '@/components';
 import { useTrips } from '@/context/TripsContext';
 import { useAuth } from '@/context/AuthContext';
 import { Colors, textStyles } from '@/constants';
@@ -14,15 +14,7 @@ export default function TripDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const { activeTrip, loadTrip, clearActiveTrip, deleteTrip, leaveTrip, isLoading } = useTrips();
-
-  // // Load trip when screen comes into focus, clear on blur
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     loadTrip(tripId);
-  //     return () => clearActiveTrip();
-  //   }, [tripId])
-  // );
+  const { activeTrip, loadTrip, deleteTrip, leaveTrip, isLoading } = useTrips();
 
   useEffect(() => {
     loadTrip(tripId);
@@ -67,6 +59,7 @@ export default function TripDetailScreen() {
   }
 
   const details = activeTrip.trip_details;
+  console.log(activeTrip.group_members);
 
 
   return (
@@ -96,8 +89,14 @@ export default function TripDetailScreen() {
             <Text style={styles.infoButtonText}>{`🗓️ ${details?.start_date ?? 'Add a  trip duration'}`}</Text>
           </Pressable>
         </View>
-        <Spacer size={8} vertical />
+
+        <Spacer size={12} vertical />
         <Text style={styles.description}>{activeTrip?.description}</Text>
+
+        <Spacer size={8} vertical />
+        <AvatarGroup members={activeTrip?.group_members ?? []} size={24} overlap={6} />
+
+        <Spacer size={40} vertical />
       </View>
     </View>
   );

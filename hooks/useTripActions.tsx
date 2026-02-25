@@ -108,7 +108,7 @@ export const TripActions = {
     try {
       const { data, error } = await supabase
         .from('groups')
-        .select('*, trip_details(*), group_members(*)')
+        .select('*, trip_details(*), group_members(*, profiles(id, name, username, profile_image_url))')
         .eq('id', groupId)
         .eq('type', 'trip')
         .single();
