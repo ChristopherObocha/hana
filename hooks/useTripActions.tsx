@@ -22,6 +22,12 @@ export type GroupMember = {
   user_id: string;
   role: MemberRole;
   joined_at: string;
+  profile: {
+    id: string;
+    name: string;
+    username: string;
+    profile_image_url: string | null;
+  };
 };
 
 export type Trip = {
@@ -91,7 +97,7 @@ export const TripActions = {
   fetchJoinedTrips: async (userId: string): Promise<Trip[]> => {
     const { data, error } = await supabase
       .from('group_members')
-      .select('group:group_id(*, trip_details(*), group_members(*))')
+      .select('group:group_id(*, trip_details(*), group_members(*, profiles(id, name, username, profile_image_url)))')
       .eq('user_id', userId)
       .neq('role', 'owner'); // exclude trips they own — fetchMyTrips covers those
     if (error) throw error;

@@ -5,6 +5,7 @@ import { router } from "expo-router";
 import type { Trip } from "@/hooks/useTripActions";
 import { useAuth } from "@/context/AuthContext";
 import { textStyles, Colors } from "@/constants";
+import { AvatarGroup } from "../ui/AvatarGroup";
 
 type UserTripCardProps = {
   trip: Trip;
@@ -36,6 +37,7 @@ export default function UserTripCard({ trip }: UserTripCardProps) {
                 <Text style={styles.subtext}>📍 {trip.trip_details?.destination_label}</Text>
               )}
             </View>
+            <AvatarGroup members={trip.group_members ?? []} />
           </View>
         </View>
       </ImageBackground>  
