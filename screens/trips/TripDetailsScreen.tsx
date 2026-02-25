@@ -1,14 +1,13 @@
-import { View, StyleSheet } from "react-native";
+import { Pressable, View, StyleSheet } from "react-native";
 import React, { useCallback, useEffect } from "react";
-import { FlashList } from "@shopify/flash-list";
 import { ImageBackground } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useTripsContext } from "@/context/TripsContext";
 import { Spacer, Text } from "@/components";
-import { Colors } from "@/constants/theme";
+import { Colors, textStyles } from "@/constants/theme";
 
 export default function TripDetailsScreen() {
   const { tripId } = useLocalSearchParams();
@@ -41,6 +40,10 @@ export default function TripDetailsScreen() {
 
       <View style={styles.content}>
         <Text style={styles.title}>{trip?.name}</Text>
+        <Spacer size={8} vertical />
+        <Pressable onPress={() => router.push(`/(tabs)/(create-trip)/${trip?.id}`)}>
+          <Text>Edit</Text>
+        </Pressable>
         <Text style={styles.description}>{trip?.description}</Text>
       </View>
     </View>
@@ -52,7 +55,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backgroundImage: {
-    // flex: 1,
     height: 350,
     width: "100%",
   },
@@ -63,11 +65,9 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   title: {
-    fontSize: 16,
-    color: Colors.light.textHeading,
+    ...textStyles.textHeading16,
   },
   description: {
-    fontSize: 12,
-    color: Colors.light.textBody,
+    ...textStyles.textBody12,
   },
 });

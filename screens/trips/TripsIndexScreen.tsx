@@ -1,9 +1,9 @@
-import { ScrollView, StyleSheet, TextStyle, View } from "react-native";
-import React, { useState } from "react";
+import { RefreshControl, ScrollView, StyleSheet, TextStyle, View } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 
-import { Spacer, Text } from "@/components";
+import { Spacer, Text, UserTripCard } from "@/components";
 import { Colors } from "@/constants";
 import { useTripsContext, Trip } from "@/context/TripsContext";
 import { FlashList } from "@shopify/flash-list";
@@ -32,7 +32,17 @@ const EMPTY_CONTENT: Record<Segment, { header: string; subtext: string }> = {
 const TripsIndexScreen = () => {
   const insets = useSafeAreaInsets();
   const [selectedSegment, setSelectedSegment] = useState<Segment>("Active");
-  const { userTrips } = useTripsContext();
+  const { userTrips, isLoading, fetchUserTrips } = useTripsContext();
+
+  useEffect(() => {
+    callFetchUserTrips();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const callFetchUserTrips = useCallback(() => {
+    fetchUserTrips();
+  }, [fetchUserTrips]);
 
   const { header, subtext } = EMPTY_CONTENT[selectedSegment];
 
@@ -86,12 +96,15 @@ const TripsIndexScreen = () => {
         contentContainerStyle={{ flex: 1 }}
         contentInsetAdjustmentBehavior="never"
       >
+        <Spacer size={16} vertical />
         {userTrips.length === 0 ? <EmptyContent /> : (
           <FlashList
             data={userTrips}
-            renderItem={({ item }: { item: Trip }) => <Text>{item.name}</Text>}
+            contentContainerStyle={{ paddingHorizontal: 16 }}
+            renderItem={({ item }: { item: Trip }) => <UserTripCard trip={item} />}
             keyExtractor={(item: Trip) => item.id}
             showsVerticalScrollIndicator={false}
+            refreshControl={<RefreshControl refreshing={isLoading} onRefresh={callFetchUserTrips} />}
           />
         )}
       </ScrollView>
