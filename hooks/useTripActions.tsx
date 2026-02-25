@@ -18,8 +18,10 @@ export type TripDetails = {
 };
 
 export type GroupMember = {
+  group_id: string;
   user_id: string;
   role: MemberRole;
+  joined_at: string;
 };
 
 export type Trip = {
@@ -78,7 +80,7 @@ export const TripActions = {
   fetchMyTrips: async (userId: string): Promise<Trip[]> => {
     const { data, error } = await supabase
       .from('groups')
-      .select('*, trip_details(*)')
+      .select('*, trip_details(*), group_members(*)')
       .eq('type', 'trip')
       .eq('owner_id', userId)
       .order('created_at', { ascending: false });
@@ -89,7 +91,7 @@ export const TripActions = {
   fetchJoinedTrips: async (userId: string): Promise<Trip[]> => {
     const { data, error } = await supabase
       .from('group_members')
-      .select('group:group_id(*, trip_details(*))')
+      .select('group:group_id(*, trip_details(*), group_members(*))')
       .eq('user_id', userId)
       .neq('role', 'owner'); // exclude trips they own — fetchMyTrips covers those
     if (error) throw error;
@@ -100,7 +102,7 @@ export const TripActions = {
     try {
       const { data, error } = await supabase
         .from('groups')
-        .select('*, trip_details(*), group_members(user_id, role)')
+        .select('*, trip_details(*), group_members(*)')
         .eq('id', groupId)
         .eq('type', 'trip')
         .single();
