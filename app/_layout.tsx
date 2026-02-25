@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 // import { useFonts } from 'expo-font';
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { TripsProvider } from '@/context/TripsContext';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useEffect } from 'react';
@@ -67,8 +68,10 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <KeyboardProvider>
         <AuthProvider>
-          <StatusBar style="auto" />
-          <RouteGuard />
+          <TripsProvider>
+            <StatusBar style="auto" />
+            <RouteGuard />
+          </TripsProvider>
         </AuthProvider>
       </KeyboardProvider>
     </ThemeProvider>
