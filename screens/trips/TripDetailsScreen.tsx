@@ -1,6 +1,6 @@
-import { View, StyleSheet, Alert, Pressable } from 'react-native';
+import { View, StyleSheet, Alert, Pressable, TextStyle } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ImageBackground } from 'expo-image';
 
@@ -9,46 +9,69 @@ import { useTrips } from '@/context/TripsContext';
 import { useAuth } from '@/context/AuthContext';
 import { Colors, textStyles } from '@/constants';
 
+type Segment = "DISCOVER" | "SAVED" | "ITINERARY" | "ACTIVITY";
+
+const SEGMENTS: Segment[] = ["DISCOVER", "SAVED", "ITINERARY", "ACTIVITY"];
+
+const EMPTY_CONTENT: Record<Segment, { header: string; subtext: string }> = {
+  DISCOVER: {
+    header: "Nothing to discover yet!",
+    subtext: "Add a destination to get started.",
+  },
+  SAVED: {
+    header: "Nothing saved yet!",
+    subtext: "Save destinations to your trip.",
+  },
+  ITINERARY: {
+    header: "Nothing in your itinerary yet!",
+    subtext: "Add activities to your itinerary.",
+  },
+  ACTIVITY: {
+    header: "Nothing in your activity yet!",
+    subtext: "Add activities to your trip.",
+  },
+};
+
 export default function TripDetailScreen() {
   const { tripId } = useLocalSearchParams<{ tripId: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { activeTrip, loadTrip, deleteTrip, leaveTrip, isLoading } = useTrips();
-
+  const [selectedSegment, setSelectedSegment] = useState<Segment>('DISCOVER');
   useEffect(() => {
     loadTrip(tripId);
   }, [tripId, loadTrip]);
 
-  const isOwner = activeTrip?.owner_id === user?.id;
+  // const isOwner = activeTrip?.owner_id === user?.id;
 
-  const handleDelete = () => {
-    Alert.alert('Delete Trip', 'This will permanently delete the trip for everyone.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          await deleteTrip(tripId);
-          router.back();
-        },
-      },
-    ]);
-  };
+  // const handleDelete = () => {
+  //   Alert.alert('Delete Trip', 'This will permanently delete the trip for everyone.', [
+  //     { text: 'Cancel', style: 'cancel' },
+  //     {
+  //       text: 'Delete',
+  //       style: 'destructive',
+  //       onPress: async () => {
+  //         await deleteTrip(tripId);
+  //         router.back();
+  //       },
+  //     },
+  //   ]);
+  // };
 
-  const handleLeave = () => {
-    Alert.alert('Leave Trip', 'You will lose access to this trip.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Leave',
-        style: 'destructive',
-        onPress: async () => {
-          await leaveTrip(tripId);
-          router.back();
-        },
-      },
-    ]);
-  };
+  // const handleLeave = () => {
+  //   Alert.alert('Leave Trip', 'You will lose access to this trip.', [
+  //     { text: 'Cancel', style: 'cancel' },
+  //     {
+  //       text: 'Leave',
+  //       style: 'destructive',
+  //       onPress: async () => {
+  //         await leaveTrip(tripId);
+  //         router.back();
+  //       },
+  //     },
+  //   ]);
+  // };
 
   if (isLoading || !activeTrip) {
     return (
@@ -59,7 +82,14 @@ export default function TripDetailScreen() {
   }
 
   const details = activeTrip.trip_details;
-  console.log(activeTrip.group_members);
+  
+  const getSegmentStyle = (segment: Segment): TextStyle => ({
+    ...styles.segmentedControlText,
+    color: selectedSegment === segment ? Colors.light.primary : Colors.light.text,
+    borderBottomWidth: selectedSegment === segment ? 2 : 0,
+    borderBottomColor:
+      selectedSegment === segment ? Colors.light.primary : Colors.light.borderDefault,
+  });
 
 
   return (
@@ -97,7 +127,22 @@ export default function TripDetailScreen() {
         <AvatarGroup members={activeTrip?.group_members ?? []} size={24} overlap={6} />
 
         <Spacer size={40} vertical />
+        
+        <View style={styles.segmentedControlContainer}>
+            {SEGMENTS.map((segment) => (
+              <Text
+                key={segment}
+                style={getSegmentStyle(segment)}
+                onPress={() => setSelectedSegment(segment)}
+              >
+                {segment}
+              </Text>
+            ))}
+        </View>
       </View>
+        <Spacer size={4} vertical /> 
+        {/* For the divider - Unsure on if this should stay in design */}
+        <View style={styles.divider} />
     </View>
   );
 }
@@ -105,6 +150,7 @@ export default function TripDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.light.background,
   },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   backgroundImage: {
@@ -112,9 +158,9 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   content: {
-    flex: 1,
+    // flex: 1,
     paddingHorizontal: 16,
-    backgroundColor: Colors.light.background,
+    
   },
   header: {
     padding: 16,
@@ -143,4 +189,20 @@ const styles = StyleSheet.create({
     ...textStyles.textBody12,
     color: Colors.light.textSubtitle,
   },
+
+  //SEGMENTED CONTROL
+  segmentedControlContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 24,
+  },
+  segmentedControlText: {
+    ...textStyles.textBody12,
+    fontSize: 14,
+    paddingBottom: 8,
+  },
+  divider: {
+    height: 4,
+    backgroundColor: Colors.light.borderDefault,
+  }
 });
