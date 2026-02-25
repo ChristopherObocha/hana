@@ -2,10 +2,13 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-// import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+import { useFonts } from 'expo-font';
+import { BricolageGrotesque_400Regular, BricolageGrotesque_500Medium, BricolageGrotesque_600SemiBold, BricolageGrotesque_700Bold } from '@expo-google-fonts/bricolage-grotesque';
+import { DMSans_400Regular, DMSans_500Medium, DMSans_600SemiBold, DMSans_700Bold } from '@expo-google-fonts/dm-sans'; 
 import { KeyboardProvider } from "react-native-keyboard-controller";
-import { TripsProvider } from '@/context/TripsContext';
 
+import { TripsProvider } from '@/context/TripsContext';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
@@ -63,6 +66,27 @@ function RouteGuard() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+
+  const [loaded, error] = useFonts({
+    BricolageGrotesque_700Bold,
+    BricolageGrotesque_600SemiBold,
+    BricolageGrotesque_500Medium,
+    BricolageGrotesque_400Regular,
+    DMSans_700Bold,
+    DMSans_600SemiBold,
+    DMSans_500Medium,
+    DMSans_400Regular,
+  });
+
+  useEffect(() => {
+    if (loaded || error) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded, error]);
+
+  if (!loaded && !error) {
+    return null;
+  }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
