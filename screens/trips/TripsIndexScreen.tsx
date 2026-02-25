@@ -1,12 +1,15 @@
-import { RefreshControl, ScrollView, StyleSheet, TextStyle, View } from "react-native";
+import { ScrollView, StyleSheet, TextStyle, View, TouchableOpacity} from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 
 import { Spacer, Text, UserTripCard } from "@/components";
 import { Colors } from "@/constants";
-import { useTripsContext, Trip } from "@/context/TripsContext";
+// import { useTripsContext, Trip } from "@/context/TripsContext";
 import { FlashList } from "@shopify/flash-list";
+import { useRouter } from "expo-router";
+import { useTrips } from "@/context/TripsContext";
+import type { Trip } from "@/hooks/useTripActions";
 
 const EmptyImage = require("@/assets/svgs/empty-trip.svg");
 
@@ -30,20 +33,28 @@ const EMPTY_CONTENT: Record<Segment, { header: string; subtext: string }> = {
 };
 
 const TripsIndexScreen = () => {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [selectedSegment, setSelectedSegment] = useState<Segment>("Active");
-  const { userTrips, isLoading, fetchUserTrips } = useTripsContext();
+  const { myTrips, joinedTrips, isLoading, refreshMyTrips } = useTrips();
+  const [selectedSegment, setSelectedSegment] = useState<Segment>('Active');
 
-  useEffect(() => {
-    callFetchUserTrips();
+  // Combine and derive — no separate fetches needed
+  const allTrips = [...myTrips, ...joinedTrips];
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const now = new Date().toISOString().split('T')[0];
 
-  const callFetchUserTrips = useCallback(() => {
-    fetchUserTrips();
-  }, [fetchUserTrips]);
+  const filteredTrips = allTrips.filter(trip => {
+    const start = trip.trip_details?.start_date;
+    const end = trip.trip_details?.end_date;
+    if (selectedSegment === 'Active') return !end || end >= now;
+    if (selectedSegment === 'Past') return !!end && end < now;
+    return false; // Saved — implement saved/bookmarked logic later
+  });
 
+  const handleTripPress = (trip: Trip) => {
+    router.push(`/(tabs)/(trips)/${trip.id}`);
+  };
+  
   const { header, subtext } = EMPTY_CONTENT[selectedSegment];
 
   const getSegmentStyle = (segment: Segment): TextStyle => ({
@@ -97,16 +108,24 @@ const TripsIndexScreen = () => {
         contentInsetAdjustmentBehavior="never"
       >
         <Spacer size={16} vertical />
-        {userTrips.length === 0 ? <EmptyContent /> : (
           <FlashList
-            data={userTrips}
+            data={filteredTrips}
             contentContainerStyle={{ paddingHorizontal: 16 }}
-            renderItem={({ item }: { item: Trip }) => <UserTripCard trip={item} />}
-            keyExtractor={(item: Trip) => item.id}
+            // renderItem={({ item }) => <UserTripCard trip={item} />}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.tripCard} onPress={() => handleTripPress(item)}>
+                <Text style={styles.tripName}>{item.name}</Text>
+                {item.trip_details?.destination_label && (
+                  <Text style={styles.tripDestination}>{item.trip_details.destination_label}</Text>
+                )}
+              </TouchableOpacity>
+            )}
+            keyExtractor={item => item.id}
             showsVerticalScrollIndicator={false}
-            refreshControl={<RefreshControl refreshing={isLoading} onRefresh={callFetchUserTrips} />}
+            refreshing={isLoading}
+            onRefresh={refreshMyTrips}
+            ListEmptyComponent={<EmptyContent />}
           />
-        )}
       </ScrollView>
     </>
   );
@@ -164,4 +183,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     maxWidth: 256,
   },
+
+  tripCard: { marginHorizontal: 16, marginVertical: 8, padding: 16, borderRadius: 12, backgroundColor: Colors.light.borderDefault, borderWidth: 1, borderColor: Colors.light.borderDefault },
+  tripName: { fontSize: 16, fontWeight: '600' },
+  tripDestination: { fontSize: 13, color: Colors.light.textBody, marginTop: 4 },
 });

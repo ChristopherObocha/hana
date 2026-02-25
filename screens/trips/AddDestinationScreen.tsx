@@ -6,13 +6,13 @@ import { Colors, textStyles } from "@/constants";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { usePlacesAutocomplete } from "@/hooks/usePlacesAutoComplete";
 import type { LiteAPIPlace } from "@/hooks/usePlacesAutoComplete";
-import { useTripActions } from "@/hooks/useTripActions";
+import { useTrips } from "@/context/TripsContext";
 
 export default function AddDestinationScreen() {
   const { tripId } = useLocalSearchParams<{ tripId: string }>();
   const router = useRouter();
   const { query, setQuery, results } = usePlacesAutocomplete();
-  const { updateDestination } = useTripActions();
+  const { updateDestination, isLoading } = useTrips();
 
   const [selectedPlace, setSelectedPlace] = useState<LiteAPIPlace | null>(null);
 

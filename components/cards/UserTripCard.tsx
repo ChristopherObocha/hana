@@ -1,6 +1,6 @@
 import { View, Text, Pressable, ImageBackground, StyleSheet } from "react-native";
 import React from "react";
-import { Trip } from "@/context/TripsContext";
+import type { Trip } from "@/hooks/useTripActions";
 import { router } from "expo-router";
 import { textStyles } from "@/constants/theme";
 
@@ -11,7 +11,7 @@ type UserTripCardProps = {
 export default function UserTripCard({ trip }: UserTripCardProps) {
   return (
     <Pressable onPress={() => router.push(`/(tabs)/(trips)/${trip.id}`)} style={styles.container}>
-      <ImageBackground source={{ uri: trip.cover_image_url }} style={styles.image} resizeMode="cover">
+      <ImageBackground source={trip.cover_image_url ? { uri: trip.cover_image_url } : undefined} style={styles.image} resizeMode="cover">
         <View style={styles.content}>
           <Text style={styles.title}>{trip.name}</Text>
           <Text style={styles.description}>{trip.description}</Text>
