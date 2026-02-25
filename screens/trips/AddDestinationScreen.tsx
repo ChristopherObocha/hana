@@ -8,7 +8,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 export default function AddDestinationScreen() {
 
   return (
-    <KeyboardAwareScrollView style={{ paddingTop: 32, paddingHorizontal: 16 }} contentContainerStyle={{ flex: 1 }} bottomOffset={100}>
+    <KeyboardAwareScrollView style={{ paddingTop: 32, paddingHorizontal: 16 }} contentContainerStyle={{ flexGrow: 1 }} bottomOffset={100}>
       <View style={{ flex: 1 }}>
         <Text style={styles.title}>Where&apos;s your next adventure? 🚀</Text>
         <Text style={styles.subtitle}>Please select a destination.</Text>
@@ -42,7 +42,6 @@ const styles = StyleSheet.create({
   form: {
     width: "100%",
     justifyContent: 'space-between',
-    height: "100%",
   },
   destinationNameInput: {
     ...textStyles.textBody12,
