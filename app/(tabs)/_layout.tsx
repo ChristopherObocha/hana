@@ -11,6 +11,10 @@ export default function TabLayout() {
         <Icon sf="gear" drawable="custom_settings_drawable" />
         <Label>Settings</Label>
       </NativeTabs.Trigger>
-    </NativeTabs>
+      <NativeTabs.Trigger name="(trips)">
+        <Icon sf="paperplane.fill" drawable="custom_paperplane_drawable" />
+        <Label>Trips</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>  
   );
 }
