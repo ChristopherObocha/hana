@@ -41,12 +41,11 @@ const TripsIndexScreen = () => {
   });
 
   return (
-    <ScrollView
-      style={styles.container}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ flex: 1 }}
-    >
-      <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
+    <>
+      <View style={[
+        styles.headerContainer, 
+        { paddingTop: insets.top }
+        ]}>
         <Spacer size={12} vertical />
         <View style={styles.header}>
           <Text style={styles.title}>Trips</Text>
@@ -65,14 +64,21 @@ const TripsIndexScreen = () => {
         </View>
       </View>
 
-      <View style={styles.emptyContainer}>
-        <Image source={EmptyImage} style={styles.emptyImage} contentFit="contain" />
-        <Spacer size={32} vertical />
-        <Text style={styles.emptyTitle}>{header}</Text>
-        <Spacer size={6} vertical />
-        <Text style={styles.emptySubtext}>{subtext}</Text>
-      </View>
-    </ScrollView>
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flex: 1 }}
+        contentInsetAdjustmentBehavior="never"
+      >
+        <View style={styles.emptyContainer}>
+          <Image source={EmptyImage} style={styles.emptyImage} contentFit="contain" />
+          <Spacer size={32} vertical />
+          <Text style={styles.emptyTitle}>{header}</Text>
+          <Spacer size={6} vertical />
+          <Text style={styles.emptySubtext}>{subtext}</Text>
+        </View>
+      </ScrollView>
+    </>
   );
 };
 
@@ -90,7 +96,6 @@ const styles = StyleSheet.create({
   headerContainer: {
     paddingHorizontal: 16,
     backgroundColor: Colors.light.background,
-
   },
   title: {
     fontSize: 24,
