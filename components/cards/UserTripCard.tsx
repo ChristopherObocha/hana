@@ -30,7 +30,12 @@ export default function UserTripCard({ trip }: UserTripCardProps) {
 
 
           <View style={styles.infoContainer}>
-            <Text style={styles.title}>{trip.name}</Text>
+            <View style={{ gap: 4 }}>
+              <Text style={styles.title}>{trip.name}</Text>
+              {trip.trip_details?.destination_label && (
+                <Text style={styles.subtext}>📍 {trip.trip_details?.destination_label}</Text>
+              )}
+            </View>
           </View>
         </View>
       </ImageBackground>  
@@ -53,13 +58,15 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     backgroundColor: '#00000073',
     flex: 1,
+    justifyContent: 'flex-end',
   },
   title: {
     ...textStyles.textHeading16,
     color: Colors.light.background,
   },
-  description: {
+  subtext: {
     ...textStyles.textBody12,
+    color: Colors.light.background,
   },
 
   roleContainer: {
