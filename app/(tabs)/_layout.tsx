@@ -15,6 +15,10 @@ export default function TabLayout() {
         <Icon sf="paperplane.fill" drawable="custom_paperplane_drawable" />
         <Label>Trips</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="(profile)">
+        <Icon sf="person.fill" drawable="custom_person_drawable" />
+        <Label>Profile</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="create-trip" role="search">
         <Icon sf="plus" drawable="custom_plus_drawable" />
         <Label>Create Trip</Label>
