@@ -41,9 +41,14 @@ export default function TripDetailsScreen() {
       <View style={styles.content}>
         <Text style={styles.title}>{trip?.name}</Text>
         <Spacer size={8} vertical />
-        <Pressable onPress={() => router.push(`/(tabs)/(create-trip)/${trip?.id}`)}>
-          <Text>Edit</Text>
-        </Pressable>
+
+        <View style={styles.infoButtonContainer}>
+          <Pressable onPress={() => router.push(`/(tabs)/(trips)/${trip?.id}/add-destination`)} style={styles.infoButton}>
+            <Text style={styles.infoButtonText}>📍 Add Destination</Text>
+          </Pressable>
+        </View>
+
+        <Spacer size={8} vertical />
         <Text style={styles.description}>{trip?.description}</Text>
       </View>
     </View>
@@ -68,6 +73,20 @@ const styles = StyleSheet.create({
     ...textStyles.textHeading16,
   },
   description: {
+    ...textStyles.textBody12,
+  },
+  infoButtonContainer: {
+    maxWidth: "50%",
+  },
+  infoButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: Colors.light.borderDefault,
+    width: "100%",
+  },
+  infoButtonText: {
     ...textStyles.textBody12,
   },
 });
