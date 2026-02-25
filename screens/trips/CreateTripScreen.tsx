@@ -3,22 +3,138 @@ import React, { useState } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
 
-
-import {Text, TextInput} from '@/components';
+import { useAuth } from "@/context/AuthContext";
+import { Text, TextInput} from '@/components';
+import { supabase } from "@/utils/supabase/client";
+import { uploadGroupCoverImage } from "@/utils/supabase/storage";
 
 export default function CreateTripScreen() {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const router = useRouter();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [coverImage, setCoverImage] = useState<string | null>(null);
 
-  const handleComplete = async () => {
-    if (!name || !description) {
-      Alert.alert("Error", "Please fill in all fields");
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission needed",
+        "We need camera roll permissions to select a profile image.",
+      );
       return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setCoverImage(result.assets[0].uri);
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission needed",
+        "We need camera permissions to take a photo.",
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setCoverImage(result.assets[0].uri);
+    }
+  };
+
+  const showImagePicker = () => {
+    Alert.alert("Select Profile Image", "Choose an option", [
+      { text: "Camera", onPress: takePhoto },
+      { text: "Photo Library", onPress: pickImage },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  };
+
+  const handleCreateTrip = async () => {
+    console.log("handleCreateTrip", name, description, coverImage, user?.id);
+    setIsLoading(true);
+
+    try {
+      if (!user) throw new Error("User not authenticated");
+
+      // 1️⃣ Insert the trip/group row
+      const { data: tripData, error: insertError } = await supabase
+        .from("groups") // or "trips" table if separate
+        .insert([
+          {
+            name,
+            description,
+            visibility: "public",
+            type: "trip",
+            owner_id: user.id,
+          },
+        ])
+        .select()
+        .single();
+
+      if (insertError || !tripData) {
+        throw insertError ?? new Error("Failed to create trip");
+      }
+
+      const tripId = tripData.id;
+
+      // 2️⃣ Upload the cover image (after trigger has inserted owner)
+      let coverImageUrl: string | null = null;
+      if (coverImage) {
+        try {
+          coverImageUrl = await uploadGroupCoverImage(tripId, coverImage);
+        } catch (err) {
+          console.error("Failed to upload cover image:", err);
+          Alert.alert(
+            "Warning",
+            "Failed to upload cover image. You can add it later."
+          );
+        }
+
+        // 3️⃣ Update the trip with cover URL
+        if (coverImageUrl) {
+          const { error: updateError } = await supabase
+            .from("groups")
+            .update({ cover_image_url: coverImageUrl })
+            .eq("id", tripId);
+
+          if (updateError) console.error(
+            "Failed to update trip with cover image URL",
+            updateError
+          );
+        }
+      }
+
+      // ✅ Success
+      Alert.alert("Success", "Trip created successfully!");
+      // Navigate to trip page or refresh list
+      router.push(`/(tabs)/(trips)/${tripId}`);
+      return tripId;
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Failed to create trip. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -36,7 +152,7 @@ export default function CreateTripScreen() {
         <View style={styles.form}>
           <TouchableOpacity
             style={styles.imageContainer}
-            // onPress={showImagePicker}
+            onPress={showImagePicker}
           >
             {coverImage ? (
               <Image
@@ -73,7 +189,7 @@ export default function CreateTripScreen() {
             multiline={true}
           />
 
-          <TouchableOpacity style={styles.button} onPress={handleComplete}>
+          <TouchableOpacity style={styles.button} onPress={() => handleCreateTrip()}>
             {isLoading ? (
               <ActivityIndicator size={24} color="#fff" />
             ) : (
