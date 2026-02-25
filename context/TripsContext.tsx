@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 
-type Trip = {
+export type Trip = {
   id: string;
   name: string;
   description?: string;
@@ -37,6 +37,9 @@ export const TripsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [userTrips, setUserTrips] = useState<Trip[]>([]);
   const { user } = useAuth();
   const [trip, setTrip] = useState<Trip | null>(null);
+  const [userActiveTrips, setUserActiveTrips] = useState<Trip[]>([]);
+  const [userSavedTrips, setUserSavedTrips] = useState<Trip[]>([]);
+  const [userPastTrips, setUserPastTrips] = useState<Trip[]>([]);
 
   const fetchTrips = async () => {
     setIsLoading(true);
@@ -90,6 +93,33 @@ export const TripsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setIsLoading(false);
     }
   };
+
+  // const fetchUserActiveTrips = async () => {
+
+  //   setUserActiveTrips(data || []);
+  // };
+
+  // const fetchUserSavedTrips = async () => {
+  //   setIsLoading(true);
+  // };
+
+  // const fetchUserPastTrips = async () => {
+  //   setIsLoading(true);
+  //   try {
+  //     const { data, error } = await supabase
+  //       .from("groups")
+  //       .select("*")
+  //       .eq("owner_id", user?.id)
+  //       .eq("type", "trip")
+
+  //       if (error) throw error;
+  //       setUserPastTrips(data || []);
+  //     } catch (err) {
+  //       console.error("Failed to fetch user past trips:", err);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
 
   useEffect(() => {
     fetchTrips();

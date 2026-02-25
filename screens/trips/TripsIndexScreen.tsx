@@ -2,8 +2,11 @@ import { ScrollView, StyleSheet, TextStyle, View } from "react-native";
 import React, { useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
+
 import { Spacer, Text } from "@/components";
 import { Colors } from "@/constants";
+import { useTripsContext, Trip } from "@/context/TripsContext";
+import { FlashList } from "@shopify/flash-list";
 
 const EmptyImage = require("@/assets/svgs/empty-trip.svg");
 
@@ -29,6 +32,7 @@ const EMPTY_CONTENT: Record<Segment, { header: string; subtext: string }> = {
 const TripsIndexScreen = () => {
   const insets = useSafeAreaInsets();
   const [selectedSegment, setSelectedSegment] = useState<Segment>("Active");
+  const { userTrips } = useTripsContext();
 
   const { header, subtext } = EMPTY_CONTENT[selectedSegment];
 
@@ -39,6 +43,18 @@ const TripsIndexScreen = () => {
     borderBottomColor:
       selectedSegment === segment ? Colors.light.primary : Colors.light.borderDefault,
   });
+
+  const EmptyContent = () => {
+    return (
+      <View style={styles.emptyContainer}>
+          <Image source={EmptyImage} style={styles.emptyImage} contentFit="contain" />
+          <Spacer size={32} vertical />
+          <Text style={styles.emptyTitle}>{header}</Text>
+          <Spacer size={6} vertical />
+          <Text style={styles.emptySubtext}>{subtext}</Text>
+        </View>
+    );
+  };
 
   return (
     <>
@@ -70,13 +86,14 @@ const TripsIndexScreen = () => {
         contentContainerStyle={{ flex: 1 }}
         contentInsetAdjustmentBehavior="never"
       >
-        <View style={styles.emptyContainer}>
-          <Image source={EmptyImage} style={styles.emptyImage} contentFit="contain" />
-          <Spacer size={32} vertical />
-          <Text style={styles.emptyTitle}>{header}</Text>
-          <Spacer size={6} vertical />
-          <Text style={styles.emptySubtext}>{subtext}</Text>
-        </View>
+        {userTrips.length === 0 ? <EmptyContent /> : (
+          <FlashList
+            data={userTrips}
+            renderItem={({ item }: { item: Trip }) => <Text>{item.name}</Text>}
+            keyExtractor={(item: Trip) => item.id}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </ScrollView>
     </>
   );
