@@ -22,7 +22,7 @@ export type GroupMember = {
   user_id: string;
   role: MemberRole;
   joined_at: string;
-  profile: {
+  profiles: {
     id: string;
     name: string;
     username: string;
@@ -86,7 +86,7 @@ export const TripActions = {
   fetchMyTrips: async (userId: string): Promise<Trip[]> => {
     const { data, error } = await supabase
       .from('groups')
-      .select('*, trip_details(*), group_members(*)')
+      .select('*, trip_details(*), group_members(*, profiles(id, name, username, profile_image_url))')
       .eq('type', 'trip')
       .eq('owner_id', userId)
       .order('created_at', { ascending: false });

@@ -1,11 +1,14 @@
 import { View, Text, Pressable, ImageBackground, StyleSheet } from "react-native";
 import React, { useMemo } from "react";
 import { router } from "expo-router";
+import { BlurView } from "expo-blur";
 
 import type { Trip } from "@/hooks/useTripActions";
 import { useAuth } from "@/context/AuthContext";
 import { textStyles, Colors } from "@/constants";
 import { AvatarGroup } from "../ui/AvatarGroup";
+import Spacer from "../utils/Spacer";
+import { LinearGradient } from "expo-linear-gradient";
 
 type UserTripCardProps = {
   trip: Trip;
@@ -29,16 +32,21 @@ export default function UserTripCard({ trip }: UserTripCardProps) {
             <Text style={styles.roleText}>{role}</Text>
           </View>
 
-
-          <View style={styles.infoContainer}>
-            <View style={{ gap: 4 }}>
-              <Text style={styles.title}>{trip.name}</Text>
-              {trip.trip_details?.destination_label && (
-                <Text style={styles.subtext}>📍 {trip.trip_details?.destination_label}</Text>
-              )}
+          <LinearGradient colors={['#87868600', '#727272B3', '#686868']} style={styles.blurView}>
+            <View style={styles.infoContainer}>
+              <View>
+                <Text style={styles.title}>{trip.name}</Text>
+                <Spacer size={4} vertical />
+                {trip.trip_details?.destination_label && (
+                  <Text style={styles.subtext}>📍 {trip.trip_details?.destination_label}</Text>
+                )}
+              </View>
+              <AvatarGroup members={trip.group_members ?? []} size={24} overlap={6}/>
             </View>
-            <AvatarGroup members={trip.group_members ?? []} />
-          </View>
+
+            <Spacer size={16} vertical />
+            <Text style={styles.subtext}>Feb 21 - Feb 28 2026 | 3 days | 12 items</Text>
+          </LinearGradient>
         </View>
       </ImageBackground>  
     </Pressable>
@@ -56,8 +64,6 @@ const styles = StyleSheet.create({
     height: 200,
   },
   content: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
     backgroundColor: '#00000073',
     flex: 1,
     justifyContent: 'flex-end',
@@ -89,5 +95,9 @@ const styles = StyleSheet.create({
   infoContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  blurView: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
 });

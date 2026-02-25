@@ -72,18 +72,22 @@ export const AvatarGroup: React.FC<AvatarGroupProps> = ({
   const visible = members.slice(0, maxVisible);
   const remaining = members.length - maxVisible;
 
+  const textSize = {
+    fontSize: size * 0.5,
+  };
+
   return (
     <View style={[styles.container, { height: size }]}>
       {visible.map((user, index) => {
-        const initials = user.profile.name
-          ? user.profile.name
+        const initials = user.profiles.name
+          ? user.profiles.name
               .split(' ')
               .map((n: string) => n[0])
               .join('')
               .toUpperCase()
           : '?';
 
-        const gradientColors = getRandomGradient(user.profile.name || user.user_id);
+        const gradientColors = getRandomGradient(user.profiles.name || user.user_id);
 
         return (
           <Pressable
@@ -98,9 +102,9 @@ export const AvatarGroup: React.FC<AvatarGroupProps> = ({
                 borderRadius: size / 2,
               },
             ]}>
-            {user.profile.profile_image_url ? (
+            {user.profiles.profile_image_url ? (
               <Image
-                source={{ uri: user.profile.profile_image_url }}
+                source={{ uri: user.profiles.profile_image_url }}
                 style={{ width: size, height: size, borderRadius: size / 2 }}
               />
             ) : (
@@ -115,7 +119,7 @@ export const AvatarGroup: React.FC<AvatarGroupProps> = ({
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}>
-                <Text style={styles.textStyle}>{initials}</Text>
+                <Text style={[styles.textStyle, textSize]}>{initials}</Text>
               </LinearGradient>
             )}
           </Pressable>
@@ -149,14 +153,13 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   avatarWrapper: {
-    position: 'absolute',
+    // position: 'absolute',
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#fff',
   },
   textStyle: {
-    fontWeight: 'bold',
-    ...textStyles.regular_12,
+    ...textStyles.textBody12,
     color: Colors.light.background,
   },
 });
