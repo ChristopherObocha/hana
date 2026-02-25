@@ -1,4 +1,4 @@
-import { View, StyleSheet, TouchableOpacity, FlatList, Alert } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import React, { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Spacer, Text, TextInput } from "@/components";
@@ -11,7 +11,7 @@ import { useTripActions } from "@/hooks/useTripActions";
 export default function AddDestinationScreen() {
   const { tripId } = useLocalSearchParams<{ tripId: string }>();
   const router = useRouter();
-  const { query, setQuery, results, loading } = usePlacesAutocomplete();
+  const { query, setQuery, results } = usePlacesAutocomplete();
   const { updateDestination } = useTripActions();
 
   const [selectedPlace, setSelectedPlace] = useState<LiteAPIPlace | null>(null);
@@ -96,10 +96,6 @@ const styles = StyleSheet.create({
     ...textStyles.textBody12,
     textAlign: "center",
   },
-  // form: {
-  //   width: "100%",
-  //   justifyContent: 'space-between',
-  // },
   destinationNameInput: {
     ...textStyles.textBody12,
     borderWidth: 2,
