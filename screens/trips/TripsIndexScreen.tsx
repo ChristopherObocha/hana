@@ -109,6 +109,7 @@ const TripsIndexScreen = () => {
             onRefresh={refreshMyTrips}
             ListEmptyComponent={<EmptyContent />}
             ItemSeparatorComponent={() => <Spacer size={16} vertical />}
+            ListFooterComponent={() => <Spacer size={160} vertical />}
           />
       </ScrollView>
     </>

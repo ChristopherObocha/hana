@@ -1,20 +1,37 @@
 import { View, Text, Pressable, ImageBackground, StyleSheet } from "react-native";
-import React from "react";
-import type { Trip } from "@/hooks/useTripActions";
+import React, { useMemo } from "react";
 import { router } from "expo-router";
-import { textStyles } from "@/constants/theme";
+
+import type { Trip } from "@/hooks/useTripActions";
+import { useAuth } from "@/context/AuthContext";
+import { textStyles, Colors } from "@/constants";
 
 type UserTripCardProps = {
   trip: Trip;
 };
 
 export default function UserTripCard({ trip }: UserTripCardProps) {
+  const { user } = useAuth();
+
+  const role = useMemo(() => {
+    let userRole = trip.group_members?.find(member => member.user_id === user?.id)?.role ?? 'Member';
+    if (userRole === 'owner') return 'Leader';
+    if (userRole === 'admin') return 'Co-Leader';
+    return 'Member';
+  }, [trip.group_members, user?.id]);
+
   return (
     <Pressable onPress={() => router.push(`/(tabs)/(trips)/${trip.id}`)} style={styles.container}>
       <ImageBackground source={trip.cover_image_url ? { uri: trip.cover_image_url } : undefined} style={styles.image} resizeMode="cover">
         <View style={styles.content}>
-          <Text style={styles.title}>{trip.name}</Text>
-          <Text style={styles.description}>{trip.description}</Text>
+          <View style={styles.roleContainer}>
+            <Text style={styles.roleText}>{role}</Text>
+          </View>
+
+
+          <View style={styles.infoContainer}>
+            <Text style={styles.title}>{trip.name}</Text>
+          </View>
         </View>
       </ImageBackground>  
     </Pressable>
@@ -24,18 +41,44 @@ export default function UserTripCard({ trip }: UserTripCardProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   image: {
     width: "100%",
     height: 200,
   },
   content: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: '#00000073',
+    flex: 1,
   },
   title: {
     ...textStyles.textHeading16,
+    color: Colors.light.background,
   },
   description: {
     ...textStyles.textBody12,
+  },
+
+  roleContainer: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#000000A6',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  roleText: {
+    ...textStyles.textBody12,
+    fontSize: 12,
+    color: Colors.light.background,
+  },
+
+  infoContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 });
