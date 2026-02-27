@@ -37,7 +37,7 @@ export default function TripDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const { activeTrip, loadTrip, deleteTrip, isLoading } = useTrips();
+  const { activeTrip, loadTrip, isLoading } = useTrips();
   const [selectedSegment, setSelectedSegment] = useState<Segment>('DISCOVER');
   useEffect(() => {
     loadTrip(tripId);
