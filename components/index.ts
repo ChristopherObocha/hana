@@ -5,6 +5,8 @@ import { HapticTab } from './ui/haptic-tab';
 import { IconSymbol } from './ui/icon-symbol';  
 import Text from './ui/Text';
 import TextInput from './containers/TextInput';
+import UserTripCard from './cards/UserTripCard';
+import { AvatarGroup } from './ui/AvatarGroup';
 
 export {
   ScreenContainer,
@@ -14,4 +16,6 @@ export {
   IconSymbol,
   Text,
   TextInput,
+  UserTripCard,
+  AvatarGroup,
 }
