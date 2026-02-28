@@ -8,6 +8,7 @@ import { AvatarGroup, Spacer, Text } from '@/components';
 import { useTrips } from '@/context/TripsContext';
 import { useAuth } from '@/context/AuthContext';
 import { Colors, textStyles } from '@/constants';
+import { TripItineraryComponent } from '@/components/itineraries/TripItineraryComponent';
 
 type Segment = "DISCOVER" | "SAVED" | "ITINERARY" | "ACTIVITY";
 
@@ -143,6 +144,10 @@ export default function TripDetailScreen() {
         <Spacer size={4} vertical /> 
         {/* For the divider - Unsure on if this should stay in design */}
         <View style={styles.divider} />
+        <Spacer size={24} vertical />
+        {/* {selectedSegment === 'ITINERARY' && ( */}
+          <TripItineraryComponent groupId={activeTrip?.id} />
+        {/* )} */}
     </View>
   );
 }

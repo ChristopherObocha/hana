@@ -7,6 +7,7 @@ export default function TripsLayout() {
       <Stack.Screen name="[tripId]" options={{ headerShown: false }} />
       <Stack.Screen name="[tripId]/add-destination" options={{ headerShown: false, presentation: 'formSheet', sheetAllowedDetents: [0.75, 1] }} />
       <Stack.Screen name="[tripId]/add-duration" options={{ headerShown: false, presentation: 'formSheet', sheetAllowedDetents: [0.9, 1] }} />
+      <Stack.Screen name="[tripId]/item/[itemId]" options={{ headerShown: false }} />
     </Stack>
   );
 }
