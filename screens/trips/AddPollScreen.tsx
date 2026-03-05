@@ -1,4 +1,4 @@
-import { View, Button, Switch, StyleSheet } from "react-native";
+import { View, Button, Switch, StyleSheet, Pressable } from "react-native";
 import React, { useState } from "react";
 import { useLocalSearchParams, router } from "expo-router";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
@@ -22,14 +22,29 @@ export default function AddPollScreen() {
       </View>
       <Spacer size={24} vertical />
 
-        <TextInput 
-          label="Ask a question"
-          isRequired
-          requiredType="asterisk"
-          placeholder="What would you like to know?" 
-          labelStyle={{ ...textStyles.textHeading16, fontSize: 14, color: Colors.light.textHeading, marginBottom: 4 }} //TODO: This should be Inter font
-          style={{ fontSize: 14, textAlign: 'left', paddingVertical: 16, paddingHorizontal: 12, borderWidth: 1, borderColor: Colors.light.borderDefault, backgroundColor: Colors.light.containerSubtle, borderRadius: 8 }} 
-        />
+      <TextInput 
+        label="Ask a question"
+        isRequired
+        requiredType="asterisk"
+        placeholder="What would you like to know?" 
+        labelStyle={styles.labelStyle} //TODO: This should be Inter font
+        style={styles.inputStyle}
+      />
+
+      <Spacer size={24} vertical />
+      {/* <Text style={styles.labelStyle}>Poll Options</Text> */}
+      <TextInput
+        label="Poll Options"
+        isRequired
+        requiredType="asterisk"
+        placeholder="Option 1"
+        labelStyle={styles.labelStyle} //TODO: This should be Inter font
+        style={{ fontSize: 14, textAlign: 'left', paddingVertical: 16, paddingHorizontal: 12, borderWidth: 1, borderColor: Colors.light.borderDefault, backgroundColor: Colors.light.containerSubtle, borderRadius: 8 }} 
+      />
+
+      <Pressable onPress={() => {}} style={styles.button}>
+        <Text style={styles.buttonText}>Add another option</Text>
+      </Pressable>
 
       <Spacer size={24} vertical />
       <View>
@@ -95,4 +110,47 @@ const styles = StyleSheet.create({
       color: Colors.light.textBody,
       textAlign: "left"
     },
+    labelStyle: {
+      ...textStyles.textHeading16,
+      fontSize: 14,
+      color: Colors.light.textHeading,
+      marginBottom: 4
+    },
+    inputStyle: {
+      fontSize: 14,
+      textAlign: 'left',
+      paddingVertical: 16,
+      paddingHorizontal: 12,
+      borderWidth: 1,
+      borderColor: Colors.light.borderDefault,
+      backgroundColor: Colors.light.containerSubtle,
+      borderRadius: 8
+    },
+
+    button: {
+      backgroundColor: "#ffdde6",
+      borderStyle: "solid",
+      borderColor: "#ffdde6",
+      borderWidth: 1,
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      gap: 8,
+      width: "100%"
+    },
+
+    add: {
+      height: 16,
+      width: 16
+     },
+    buttonText: {
+      fontSize: 14,
+      lineHeight: 20,
+      fontFamily: "Inter-Regular",
+      color: "#ff2e92",
+      textAlign: "left"
+       }
 });
