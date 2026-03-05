@@ -1,6 +1,6 @@
-import { View, Text } from "react-native";
-import React, { useState } from "react";
-import { supabase } from "@/utils/supabase/client";
+import React, { useState } from 'react';
+import { supabase } from '@/utils/supabase/client';
+// import * as Burnt from 'burnt';
 
 export type PollType = 'single_choice' | 'multiple_choice' | 'ranked';
 
@@ -17,6 +17,13 @@ export type Poll = {
   allow_add_options?: boolean;
   anonymous_voting?: boolean;
   closes_at?: string;
+  creator: {
+    id: string;
+    name: string;
+    profile_image_url: string;
+  };
+  poll_options: PollOption[];
+  poll_votes: PollVote[];
 };
 
 export type PollOption = {
@@ -37,18 +44,23 @@ export type PollVote = {
   created_at: string;
 };
 
-// export type CreatePollInput = {
-//   group_id: string;
-//   title: string;
-//   description: string;
-//   type: PollType;
-// };
+export type CreatePollInput = {
+  group_id: string;
+  title: string;
+  description?: string;
+  type: PollType;
+  allow_add_options?: boolean;
+  anonymous_voting?: boolean;
+  closes_at?: string;
+  created_by: string;
+};
 
-// export type CreatePollOptionInput = {
-//   poll_id: string;
-//   label: string;
-//   metadata?: object;
-// };
+export type CreatePollOptionInput = {
+  label: string;
+  metadata?: object;
+  created_by: string;
+  poll_id?: string;
+};
 
 // export type CreatePollVoteInput = {
 //   poll_id: string;
@@ -59,28 +71,45 @@ export type PollVote = {
 
 const usePollActions = () => {
   const [polls, setPolls] = useState<Poll[]>([]);
-  // const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   // const [error, setError] = useState<string | null>(null);
 
-
-  const createPoll = async (poll: Partial<Poll>): Promise<Poll> => {
+  const createPoll = async (
+    poll: CreatePollInput,
+    options: CreatePollOptionInput[]
+  ): Promise<Poll> => {
+    setIsLoading(true);
     try {
-    const { data, error } = await supabase
-      .from('polls')
-      .insert({
-        ...poll,
-      })
-      .select()
-      .single();
+      const { data, error } = await supabase
+        .from('polls')
+        .insert({
+          ...poll,
+        })
+        .select()
+        .single();
       if (error) throw error;
-      return data as Poll;
-    } catch (error) {
-      console.error("Failed to create poll:", error);
-      throw error;
-    }
-  }
+      const createdPoll = data as Poll;
 
-  const addPollOption = async (pollOption: Partial<PollOption>): Promise<PollOption> => {
+      // Insert all options in parallel, binding them to the new poll id
+      await Promise.all(
+        options.map((option) =>
+          addPollOption({ ...option, poll_id: createdPoll.id })
+        )
+      );
+
+      return createdPoll;
+    } catch (error) {
+      console.error('Failed to create poll:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const addPollOption = async (
+    pollOption: CreatePollOptionInput
+  ): Promise<PollOption | undefined> => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('poll_options')
@@ -92,27 +121,39 @@ const usePollActions = () => {
       if (error) throw error;
       return data as PollOption;
     } catch (error) {
-      console.error("Failed to add poll option:", error);
-      throw error;
+      console.error('Failed to add poll option:', error);
+      // Burnt.toast({
+      //   title: '😨 Oh no!',
+      //   preset: 'error',
+      //   message:
+      //     'Something went wrong while updating your profile. Please try again.',
+      //   duration: 3,
+      //   from: 'bottom',
+      //   haptic: 'error',
+      //   shouldDismissByDrag: true,
+      // });
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
   const fetchPolls = async (groupId: string): Promise<Poll[]> => {
-    
     try {
       const { data, error } = await supabase
         .from('polls')
-        .select('*')
+        .select(
+          '*, creator:profiles!created_by (id, name, profile_image_url), poll_options(*), poll_votes(*)'
+        )
         .eq('group_id', groupId);
       if (error) throw error;
       setPolls(data as Poll[]);
       return data as Poll[];
     } catch (error) {
-      console.error("Failed to fetch polls:", error);
+      console.error('Failed to fetch polls:', error);
       throw error;
-      }
-    };
+    }
+  };
 
-  return { createPoll, addPollOption, fetchPolls, polls };
+  return { createPoll, addPollOption, fetchPolls, polls, isLoading };
 };
 export default usePollActions;
