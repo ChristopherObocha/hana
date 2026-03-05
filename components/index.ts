@@ -10,6 +10,8 @@ import { AvatarGroup } from './ui/AvatarGroup';
 import PollsContainer from './containers/PollsContainer';
 import PrimaryButton from './buttons/PrimaryButton';
 import PollItem from './cards/PollItem';
+import HotelsContainer from './containers/HotelsContainer';
+import DiscoverCard from './cards/DiscoverCard';
 
 export {
   ScreenContainer,
@@ -24,4 +26,6 @@ export {
   PollsContainer,
   PrimaryButton,
   PollItem,
+  HotelsContainer,
+  DiscoverCard,
 };
