@@ -1,10 +1,11 @@
-import { View, Button, Switch, StyleSheet, Pressable } from "react-native";
-import React, { useState } from "react";
-import { useLocalSearchParams, router } from "expo-router";
-import {useSafeAreaInsets} from "react-native-safe-area-context";
+import { View, Button, Switch, StyleSheet, Pressable } from 'react-native';
+import React, { useState } from 'react';
+import { useLocalSearchParams, router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { X } from 'lucide-react-native';
 
-import { Text, TextInput, Spacer } from "@/components";
-import { Colors, textStyles } from "@/constants";
+import { Text, TextInput, Spacer } from '@/components';
+import { Colors, textStyles } from '@/constants';
 
 export default function AddPollScreen() {
   const { tripId } = useLocalSearchParams<{ tripId: string }>();
@@ -13,36 +14,103 @@ export default function AddPollScreen() {
   const [allowMultipleAnswers, setAllowMultipleAnswers] = useState(false);
   const [anonymousVoting, setAnonymousVoting] = useState(false);
 
+  const [options, setOptions] = useState<string[]>(['', '']);
+
+  const addOption = () => {
+    setOptions((prev) => [...prev, '']);
+  };
+
+  const removeOption = (index: number) => {
+    setOptions((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updateOption = (index: number, value: string) => {
+    setOptions((prev) => prev.map((opt, i) => (i === index ? value : opt)));
+  };
 
   return (
-    <View style={{ paddingHorizontal: 16, flex: 1, backgroundColor: Colors.light.background, height: '100%' }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingTop: 24, paddingBottom: 8, borderBottomWidth: 2, borderBottomColor: Colors.light.borderDefault   }}>
-        <Text style={{ fontSize: 14, textAlign: 'left', position: 'absolute', left: 0, top: 24 }} onPress={() => router.dismiss()}>Close</Text>
-        <Text style={{ fontSize: 16, fontWeight: 'bold', textAlign: 'center', flex: 1 }}>Add Poll</Text>
+    <View
+      style={{
+        paddingHorizontal: 16,
+        flex: 1,
+        backgroundColor: Colors.light.background,
+        height: '100%',
+      }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingTop: 24,
+          paddingBottom: 8,
+          borderBottomWidth: 2,
+          borderBottomColor: Colors.light.borderDefault,
+        }}>
+        <Text
+          style={{
+            fontSize: 14,
+            textAlign: 'left',
+            position: 'absolute',
+            left: 0,
+            top: 24,
+          }}
+          onPress={() => router.dismiss()}>
+          Close
+        </Text>
+        <Text
+          style={{
+            fontSize: 16,
+            fontWeight: 'bold',
+            textAlign: 'center',
+            flex: 1,
+          }}>
+          Add Poll
+        </Text>
       </View>
       <Spacer size={24} vertical />
 
-      <TextInput 
+      <TextInput
         label="Ask a question"
         isRequired
         requiredType="asterisk"
-        placeholder="What would you like to know?" 
+        placeholder="What would you like to know?"
         labelStyle={styles.labelStyle} //TODO: This should be Inter font
         style={styles.inputStyle}
       />
 
       <Spacer size={24} vertical />
-      {/* <Text style={styles.labelStyle}>Poll Options</Text> */}
-      <TextInput
-        label="Poll Options"
-        isRequired
-        requiredType="asterisk"
-        placeholder="Option 1"
-        labelStyle={styles.labelStyle} //TODO: This should be Inter font
-        style={{ fontSize: 14, textAlign: 'left', paddingVertical: 16, paddingHorizontal: 12, borderWidth: 1, borderColor: Colors.light.borderDefault, backgroundColor: Colors.light.containerSubtle, borderRadius: 8 }} 
-      />
+      <Text style={styles.labelStyle}>
+        <Text style={{ color: 'red' }}>*</Text> Poll Options
+      </Text>
+      {options.map((option, index) => (
+        <>
+          <View key={index} style={styles.inputContainer}>
+            <TextInput
+              placeholder={`Option ${index + 1}`}
+              labelStyle={styles.labelStyle}
+              style={styles.inputStyle}
+              value={option}
+              onChangeText={(text) => updateOption(index, text)}
+              containerStyle={{
+                flex: 1,
+                width: '100%',
+              }}
+            />
 
-      <Pressable onPress={() => {}} style={styles.button}>
+            {options.length > 2 && (
+              <Pressable
+                onPress={() => removeOption(index)}
+                style={styles.removeButton}>
+                <X size={16} color={Colors.light.textHeading} />
+              </Pressable>
+            )}
+          </View>
+          {index < options.length - 1 && <Spacer size={12} vertical />}
+        </>
+      ))}
+
+      <Spacer size={24} vertical />
+      <Pressable onPress={addOption} style={styles.button}>
         <Text style={styles.buttonText}>Add another option</Text>
       </Pressable>
 
@@ -52,22 +120,34 @@ export default function AddPollScreen() {
         <Spacer size={12} vertical />
         <View style={styles.frameParent}>
           <View style={styles.switchLabelContainer}>
-            <Text style={styles.switchLabelHeading}>Allow multiple answers</Text>
+            <Text style={styles.switchLabelHeading}>
+              Allow multiple answers
+            </Text>
           </View>
-          <Switch value={allowMultipleAnswers} onValueChange={() => setAllowMultipleAnswers(!allowMultipleAnswers)} />
+          <Switch
+            value={allowMultipleAnswers}
+            onValueChange={() => setAllowMultipleAnswers(!allowMultipleAnswers)}
+          />
         </View>
         <Spacer size={12} vertical />
         <View style={styles.frameParent}>
           <View style={styles.switchLabelContainer}>
-            <Text style={styles.switchLabelHeading}>Allow anonymous voting</Text>
-            <Text style={styles.switchLabelDescription}>People&apos;s votes will remain undisclosed</Text>
+            <Text style={styles.switchLabelHeading}>
+              Allow anonymous voting
+            </Text>
+            <Text style={styles.switchLabelDescription}>
+              People&apos;s votes will remain undisclosed
+            </Text>
           </View>
-          <Switch value={anonymousVoting} onValueChange={() => setAnonymousVoting(!anonymousVoting)} />
+          <Switch
+            value={anonymousVoting}
+            onValueChange={() => setAnonymousVoting(!anonymousVoting)}
+          />
         </View>
       </View>
 
       <Spacer size={24} vertical />
-        <Button title="Create Poll" onPress={() => {}} />
+      <Button title="Create Poll" onPress={() => {}} />
     </View>
   );
 }
@@ -80,77 +160,89 @@ const styles = StyleSheet.create({
   pollSettingsHeading: {
     ...textStyles.textHeading16,
     color: Colors.light.textHeading,
-    textAlign: "left"
-   },
-   frameParent: {
-      backgroundColor: "#f8f9fa",
-      borderColor: "#e9ecef",
-      borderWidth: 1,
-      flex: 1,
-      padding: 10,
-      width: "100%",
-      alignSelf: "stretch",
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: 20,
-      borderRadius: 8,
-    },
-    switchLabelContainer: {
-      gap: 4,
-    },
-    switchLabelHeading: {
-      ...textStyles.textHeading16,
-      fontSize: 14,
-      color: Colors.light.textHeading,
-      textAlign: "left"
-    },
-    switchLabelDescription: {
-      ...textStyles.textBody12,
-      color: Colors.light.textBody,
-      textAlign: "left"
-    },
-    labelStyle: {
-      ...textStyles.textHeading16,
-      fontSize: 14,
-      color: Colors.light.textHeading,
-      marginBottom: 4
-    },
-    inputStyle: {
-      fontSize: 14,
-      textAlign: 'left',
-      paddingVertical: 16,
-      paddingHorizontal: 12,
-      borderWidth: 1,
-      borderColor: Colors.light.borderDefault,
-      backgroundColor: Colors.light.containerSubtle,
-      borderRadius: 8
-    },
+    textAlign: 'left',
+  },
+  frameParent: {
+    backgroundColor: '#f8f9fa',
+    borderColor: '#e9ecef',
+    borderWidth: 1,
+    flex: 1,
+    padding: 10,
+    width: '100%',
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 20,
+    borderRadius: 8,
+  },
+  switchLabelContainer: {
+    gap: 4,
+  },
+  switchLabelHeading: {
+    ...textStyles.textHeading16,
+    fontSize: 14,
+    color: Colors.light.textHeading,
+    textAlign: 'left',
+  },
+  switchLabelDescription: {
+    ...textStyles.textBody12,
+    color: Colors.light.textBody,
+    textAlign: 'left',
+  },
+  labelStyle: {
+    ...textStyles.textHeading16,
+    fontSize: 14,
+    color: Colors.light.textHeading,
+    marginBottom: 4,
+  },
+  inputStyle: {
+    fontSize: 14,
+    textAlign: 'left',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: Colors.light.borderDefault,
+    backgroundColor: Colors.light.containerSubtle,
+    borderRadius: 8,
+  },
 
-    button: {
-      backgroundColor: "#ffdde6",
-      borderStyle: "solid",
-      borderColor: "#ffdde6",
-      borderWidth: 1,
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: 14,
-      paddingVertical: 12,
-      gap: 8,
-      width: "100%"
-    },
+  button: {
+    backgroundColor: '#ffdde6',
+    borderStyle: 'solid',
+    borderColor: '#ffdde6',
+    borderWidth: 1,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 8,
+    width: '100%',
+    borderRadius: 8,
+  },
 
-    add: {
-      height: 16,
-      width: 16
-     },
-    buttonText: {
-      fontSize: 14,
-      lineHeight: 20,
-      fontFamily: "Inter-Regular",
-      color: "#ff2e92",
-      textAlign: "left"
-       }
+  add: {
+    height: 16,
+    width: 16,
+  },
+  buttonText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontFamily: 'Inter-Regular',
+    color: '#ff2e92',
+    textAlign: 'left',
+  },
+
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  removeButton: {
+    padding: 8,
+    borderRadius: 8,
+  },
 });
