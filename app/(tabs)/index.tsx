@@ -1,12 +1,7 @@
-import React from 'react';
-import { Text } from 'react-native';
+import React from "react";
 
-import ScreenContainer from '@/components/containers/ScreenContainer';
+import SplashScreen from "@/components/ui/splash-screen";
 
 export default function HomeScreen() {
-  return (
-    <ScreenContainer>
-      <Text>Welcome to Runwae🎉</Text>
-    </ScreenContainer>
-  );
+  return <SplashScreen />;
 }

@@ -1,3 +1,12 @@
-import LogInScreen from "@/screens/auth/LogInScreen";
+import React from "react";
+import { Text, View } from "react-native";
 
-export default LogInScreen;
+const ExploreScreen = () => {
+  return (
+    <View>
+      <Text>ExploreScreen</Text>
+    </View>
+  );
+};
+
+export default ExploreScreen;
