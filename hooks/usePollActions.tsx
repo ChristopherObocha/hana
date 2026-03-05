@@ -17,6 +17,13 @@ export type Poll = {
   allow_add_options?: boolean;
   anonymous_voting?: boolean;
   closes_at?: string;
+  creator: {
+    id: string;
+    name: string;
+    profile_image_url: string;
+  };
+  poll_options: PollOption[];
+  poll_votes: PollVote[];
 };
 
 export type PollOption = {
@@ -134,7 +141,9 @@ const usePollActions = () => {
     try {
       const { data, error } = await supabase
         .from('polls')
-        .select('*')
+        .select(
+          '*, creator:profiles!created_by (id, name, profile_image_url), poll_options(*), poll_votes(*)'
+        )
         .eq('group_id', groupId);
       if (error) throw error;
       setPolls(data as Poll[]);
