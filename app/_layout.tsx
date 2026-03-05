@@ -89,9 +89,7 @@ function RouteGuard() {
 
     let targetRoute: string | null = null;
 
-    if (isAuthenticated && !isInTabs) {
-      targetRoute = "/(tabs)";
-    } else if (!isAuthenticated && hasSeenOnboarding && !isInAuthFlow) {
+    if (!isAuthenticated && hasSeenOnboarding && !isInAuthFlow) {
       targetRoute = "/(auth)/login";
     } else if (
       !isAuthenticated &&
@@ -101,6 +99,8 @@ function RouteGuard() {
       !isInAuthFlow
     ) {
       targetRoute = "/(auth)/onboarding";
+    } else if (isAuthenticated && !isInTabs) {
+      targetRoute = "/(tabs)";
     }
 
     if (targetRoute && targetRoute !== lastRoute.current) {
