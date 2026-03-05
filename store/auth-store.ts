@@ -17,10 +17,12 @@ interface AuthStore {
   hasSeenOnboarding: boolean;
   isAuthenticated: boolean;
   isProfileComplete: boolean;
+  currentOnboardingStep: number;
 
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
   setHasSeenOnboarding: (seen: boolean) => void;
+  setCurrentOnboardingStep: (step: number) => void;
 
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
@@ -28,6 +30,7 @@ interface AuthStore {
   updateUser: (profile: Partial<User>) => Promise<void>;
   initialize: () => Promise<void>;
   completeOnboarding: () => void;
+  nextOnboardingStep: () => void;
 }
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
@@ -36,6 +39,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   hasSeenOnboarding: false,
   isAuthenticated: false,
   isProfileComplete: false,
+  currentOnboardingStep: 1,
 
   setUser: (user) => {
     const isAuthenticated = !!user;
@@ -47,7 +51,17 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   setHasSeenOnboarding: (hasSeenOnboarding) => set({ hasSeenOnboarding }),
 
+  setCurrentOnboardingStep: (currentOnboardingStep) =>
+    set({ currentOnboardingStep }),
+
   completeOnboarding: () => set({ hasSeenOnboarding: true }),
+
+  nextOnboardingStep: () => {
+    const { currentOnboardingStep } = get();
+    if (currentOnboardingStep < 3) {
+      set({ currentOnboardingStep: currentOnboardingStep + 1 });
+    }
+  },
 
   initialize: async () => {
     const { setLoading, setUser, setHasSeenOnboarding } = get();

@@ -20,6 +20,7 @@ import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef } from "react";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import "react-native-reanimated";
+import ToastManager from "toastify-react-native";
 
 import SplashScreen from "@/components/ui/splash-screen";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
@@ -50,25 +51,60 @@ function RouteGuard() {
   useEffect(() => {
     if (isLoading || isNavigating.current) return;
 
-    const AUTH_SEGMENTS = new Set(["(auth)", "login", "register"]);
-    const ONBOARDING_SEGMENT = "onboarding";
-    const TAB_SEGMENTS = new Set(["(tabs)"]);
+    const AUTH_ROUTES = new Set([
+      "(auth)",
+      "login",
+      "register",
+      "forgot-password",
+      "check-email",
+      "reset-password",
+      "onboarding",
+    ]);
 
-    const currentSegment = segments[0];
-    const inAuthGroup = AUTH_SEGMENTS.has(currentSegment);
-    const inOnboarding = currentSegment === ONBOARDING_SEGMENT;
-    const inTabsGroup = TAB_SEGMENTS.has(currentSegment);
+    const ONBOARDING_STEPS = new Set([
+      "onboarding",
+      "onboarding-step-1",
+      "onboarding-step-2",
+      "onboarding-step-3",
+    ]);
+
+    const [currentSegment, secondSegment] = segments;
+    const isInAuthFlow =
+      AUTH_ROUTES.has(currentSegment) ||
+      (currentSegment === "(auth)" &&
+        secondSegment &&
+        AUTH_ROUTES.has(secondSegment));
+    const isInOnboardingSteps =
+      currentSegment === "(auth)" &&
+      secondSegment &&
+      ONBOARDING_STEPS.has(secondSegment);
+    const isInTabs = currentSegment === "(tabs)";
+    const isInOnboarding = currentSegment === "onboarding";
 
     let targetRoute: string | null = null;
 
-    if (!hasSeenOnboarding && !inOnboarding) {
+    if (
+      !hasSeenOnboarding &&
+      !isInOnboarding &&
+      !isInOnboardingSteps &&
+      !isInAuthFlow
+    ) {
       targetRoute = "/onboarding";
-    } else if (hasSeenOnboarding && !isAuthenticated && !inAuthGroup) {
+    } else if (hasSeenOnboarding && !isAuthenticated && !isInAuthFlow) {
       targetRoute = "/(auth)/login";
-    } else if (isAuthenticated && !isProfileComplete && !inAuthGroup) {
-      targetRoute = "/(auth)/onboarding";
-    } else if (isAuthenticated && isProfileComplete && !inTabsGroup) {
+    } else if (
+      isAuthenticated &&
+      (isProfileComplete || hasSeenOnboarding) &&
+      !isInTabs
+    ) {
       targetRoute = "/(tabs)";
+    } else if (
+      isAuthenticated &&
+      !isProfileComplete &&
+      !isInAuthFlow &&
+      !isInOnboardingSteps
+    ) {
+      targetRoute = "/(auth)/onboarding";
     }
 
     if (targetRoute) {
@@ -135,6 +171,10 @@ export default function RootLayout() {
       <KeyboardProvider>
         <AuthProvider>
           <StatusBar style="auto" />
+          <ToastManager
+            showProgressBar={false}
+            style={{ borderRadius: 20, boxShadow: "none" }}
+          />
           <RouteGuard />
         </AuthProvider>
       </KeyboardProvider>

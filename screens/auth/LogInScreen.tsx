@@ -1,18 +1,85 @@
+import * as Haptics from "expo-haptics";
 import { Link } from "expo-router";
-import React from "react";
-import { KeyboardAvoidingView, Platform, Text, View } from "react-native";
+import React, { useState } from "react";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Toast } from "toastify-react-native";
 
-import { Spacer, TextInput } from "@/components";
+import { Spacer } from "@/components";
+import CustomTextInput from "@/components/containers/TextInput";
+import { useAuth } from "@/hooks/useAuth";
+import { LoginFormData, loginSchema } from "@/utils/validation/auth.validation";
+import z from "zod";
 
 const LogInScreen = () => {
   const insets = useSafeAreaInsets();
+  const { signIn, isLoading: authLoading } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<LoginFormData>({
+    email: "",
+    password: "",
+  });
+  const [errors, setErrors] = useState<LoginFormData>({
+    email: "",
+    password: "",
+  });
+
+  const handleInputChange = (field: keyof LoginFormData, value: string) => {
+    setFormData({ ...formData, [field]: value });
+    setErrors({ ...errors, [field]: "" });
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      loginSchema.parse(formData);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      const result = await signIn(formData.email, formData.password);
+
+      if (!result.success) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        Toast.show({
+          type: "error",
+          text1: "Login Error",
+          text2: result.error,
+          position: "bottom",
+          visibilityTime: 4000,
+          autoHide: true,
+        });
+      } else {
+        console.log("Login successful");
+      }
+    } catch (error: any) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      if (error instanceof z.ZodError) {
+        const newErrors: LoginFormData = { email: "", password: "" };
+        error.issues.forEach((issue) => {
+          if (issue.path.length > 0) {
+            const field = issue.path[0] as keyof LoginFormData;
+            newErrors[field] = issue.message;
+          }
+        });
+        setErrors(newErrors);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1 px-4"
+        className="flex-1 px-[20px] bg-white"
       >
         <View style={{ paddingTop: insets.top + 24 }}>
           <Spacer size={24} vertical />
@@ -33,35 +100,45 @@ const LogInScreen = () => {
           </Text>
           <Spacer size={50} vertical />
 
-          <TextInput
-            label="E-mail Address"
-            isRequired
-            requiredType="asterisk"
-            placeholder="Enter your email"
+          <CustomTextInput
+            label="Email address"
             keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            autoCorrect={false}
-            returnKeyType="next"
-            onSubmitEditing={() => {}}
-            className="border border-gray-300! rounded-lg p-4 mt-1"
+            placeholder="example@email.com"
+            value={formData.email}
+            onChangeText={(value) => handleInputChange("email", value)}
+            error={errors.email}
           />
 
           <Spacer size={16} vertical />
-          <TextInput
+
+          <CustomTextInput
             label="Password"
-            isRequired
-            requiredType="asterisk"
-            placeholder="Enter your password"
-            keyboardType="default"
-            autoCapitalize="none"
-            autoComplete="password"
-            autoCorrect={false}
-            secureTextEntry={true}
-            returnKeyType="done"
-            onSubmitEditing={() => {}}
-            className="border border-gray-300 rounded-lg p-4 mt-1"
+            isPassword
+            value={formData.password}
+            onChangeText={(value) => handleInputChange("password", value)}
+            error={errors.password}
           />
+          <Spacer size={5} vertical />
+          <View style={styles.forgotPasswordContainer}>
+            <Link
+              href={"/(auth)/forgot-password"}
+              className="text-sm text-primary underline"
+            >
+              Forgot Password?
+            </Link>
+          </View>
+          <Spacer size={20} vertical />
+          <TouchableOpacity
+            onPress={handleSubmit}
+            disabled={isSubmitting || authLoading}
+            className="bg-primary h-[45px] rounded-full w-full flex items-center justify-center disabled:opacity-50"
+          >
+            {isSubmitting || authLoading ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <Text className="text-white font-medium text-base">Log in</Text>
+            )}
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </>
@@ -69,3 +146,10 @@ const LogInScreen = () => {
 };
 
 export default LogInScreen;
+
+const styles = StyleSheet.create({
+  forgotPasswordContainer: {
+    alignItems: "flex-end",
+    width: "100%",
+  },
+});

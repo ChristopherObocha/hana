@@ -7,12 +7,14 @@ export interface AuthContextType {
   hasSeenOnboarding: boolean;
   isAuthenticated: boolean;
   isProfileComplete: boolean;
+  currentOnboardingStep: number;
   signUp: (email: string, password: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   updateUser: (profile: Partial<User>) => Promise<void>;
   signOut: () => Promise<void>;
   initialize: () => Promise<void>;
   completeOnboarding: () => void;
+  nextOnboardingStep: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,12 +26,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     hasSeenOnboarding,
     isAuthenticated,
     isProfileComplete,
+    currentOnboardingStep,
     signIn,
     signUp,
     signOut,
     updateUser,
     initialize,
     completeOnboarding,
+    nextOnboardingStep,
   } = useAuthStore();
 
   return (
@@ -40,12 +44,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         hasSeenOnboarding,
         isAuthenticated,
         isProfileComplete,
+        currentOnboardingStep,
         signUp,
         signIn,
         signOut,
         updateUser,
         initialize,
         completeOnboarding,
+        nextOnboardingStep,
       }}
     >
       {children}
