@@ -1,18 +1,31 @@
-import { View, Button, Switch, StyleSheet, Pressable } from 'react-native';
+import {
+  View,
+  Switch,
+  StyleSheet,
+  Pressable,
+  ActivityIndicator,
+} from 'react-native';
 import React, { useState } from 'react';
-import { useLocalSearchParams, router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { X } from 'lucide-react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 import { Text, TextInput, Spacer } from '@/components';
 import { Colors, textStyles } from '@/constants';
+import usePollActions, { PollType } from '@/hooks/usePollActions';
+import { useAuth } from '@/context/AuthContext';
 
 export default function AddPollScreen() {
   const { tripId } = useLocalSearchParams<{ tripId: string }>();
-  const insets = useSafeAreaInsets();
+  const router = useRouter();
 
+  const { user } = useAuth();
+  const { createPoll, isLoading } = usePollActions();
+
+  const [pollTitle, setPollTitle] = useState('');
   const [allowMultipleAnswers, setAllowMultipleAnswers] = useState(false);
   const [anonymousVoting, setAnonymousVoting] = useState(false);
+  const [allowAddingOptions, setAllowAddingOptions] = useState(false);
 
   const [options, setOptions] = useState<string[]>(['', '']);
 
@@ -28,14 +41,37 @@ export default function AddPollScreen() {
     setOptions((prev) => prev.map((opt, i) => (i === index ? value : opt)));
   };
 
+  const handleCreatePoll = async () => {
+    const poll = {
+      group_id: tripId,
+      title: pollTitle,
+      type: allowMultipleAnswers
+        ? ('multiple_choice' as PollType)
+        : ('single_choice' as PollType),
+      allow_add_options: allowAddingOptions,
+      anonymous_voting: anonymousVoting,
+      created_by: user?.id as string,
+    };
+    const pollOptions = options
+      .filter((o) => o.trim())
+      .map((label) => ({ label, created_by: user?.id as string }));
+    try {
+      await createPoll(poll, pollOptions);
+    } catch (error) {
+      console.error('Failed to create poll:', error);
+    }
+  };
+
   return (
-    <View
+    <KeyboardAwareScrollView
       style={{
         paddingHorizontal: 16,
         flex: 1,
         backgroundColor: Colors.light.background,
         height: '100%',
-      }}>
+      }}
+      contentContainerStyle={{ flexGrow: 1 }}
+      bottomOffset={100}>
       <View
         style={{
           flexDirection: 'row',
@@ -46,17 +82,24 @@ export default function AddPollScreen() {
           borderBottomWidth: 2,
           borderBottomColor: Colors.light.borderDefault,
         }}>
-        <Text
+        <Pressable
+          hitSlop={{ top: 30, bottom: 30, left: 30, right: 60 }}
+          onPress={() => {
+            router.dismiss();
+          }}
           style={{
-            fontSize: 14,
-            textAlign: 'left',
             position: 'absolute',
             left: 0,
             top: 24,
-          }}
-          onPress={() => router.dismiss()}>
-          Close
-        </Text>
+          }}>
+          <Text
+            style={{
+              fontSize: 14,
+              textAlign: 'left',
+            }}>
+            Close
+          </Text>
+        </Pressable>
         <Text
           style={{
             fontSize: 16,
@@ -76,6 +119,8 @@ export default function AddPollScreen() {
         placeholder="What would you like to know?"
         labelStyle={styles.labelStyle} //TODO: This should be Inter font
         style={styles.inputStyle}
+        value={pollTitle}
+        onChangeText={(text) => setPollTitle(text)}
       />
 
       <Spacer size={24} vertical />
@@ -144,11 +189,34 @@ export default function AddPollScreen() {
             onValueChange={() => setAnonymousVoting(!anonymousVoting)}
           />
         </View>
+
+        <Spacer size={12} vertical />
+        <View style={styles.frameParent}>
+          <View style={styles.switchLabelContainer}>
+            <Text style={styles.switchLabelHeading}>Allow adding options</Text>
+            <Text style={styles.switchLabelDescription}>
+              Participants can add options to the poll
+            </Text>
+          </View>
+          <Switch
+            value={allowAddingOptions}
+            onValueChange={() => setAllowAddingOptions(!allowAddingOptions)}
+          />
+        </View>
       </View>
 
       <Spacer size={24} vertical />
-      <Button title="Create Poll" onPress={() => {}} />
-    </View>
+      <Pressable
+        onPress={handleCreatePoll}
+        disabled={isLoading}
+        style={styles.button}>
+        {isLoading ? (
+          <ActivityIndicator size={24} color={Colors.light.textHeading} />
+        ) : (
+          <Text style={styles.buttonText}>Create Poll</Text>
+        )}
+      </Pressable>
+    </KeyboardAwareScrollView>
   );
 }
 
