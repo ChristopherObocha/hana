@@ -1,5 +1,5 @@
 import * as Haptics from "expo-haptics";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -23,6 +23,7 @@ import {
 import z from "zod";
 
 const SignUpScreen = () => {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signUp, isLoading: authLoading, completeOnboarding } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,7 +62,7 @@ const SignUpScreen = () => {
           autoHide: true,
         });
       } else {
-        completeOnboarding();
+        router.replace("/boarding/step-1");
       }
     } catch (error: any) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);

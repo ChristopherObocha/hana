@@ -36,8 +36,15 @@ function RouteGuard() {
   const segments = useSegments();
   const isNavigating = useRef(false);
   const lastRoute = useRef<string | null>(null);
-  const { user, isLoading, hasSeenOnboarding, isAuthenticated, initialize } =
-    useAuth();
+  const {
+    user,
+    isLoading,
+    hasSeenOnboarding,
+    hasCompletedBoarding,
+    currentBoardingStep,
+    isAuthenticated,
+    initialize,
+  } = useAuth();
 
   useEffect(() => {
     initialize();
@@ -99,6 +106,9 @@ function RouteGuard() {
       !isInAuthFlow
     ) {
       targetRoute = "/(auth)/onboarding";
+    } else if (isAuthenticated && !hasCompletedBoarding && !isInTabs) {
+      // Route to appropriate boarding step
+      targetRoute = `/boarding/step-${currentBoardingStep}`;
     } else if (isAuthenticated && !isInTabs) {
       targetRoute = "/(tabs)";
     }

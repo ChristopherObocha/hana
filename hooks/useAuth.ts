@@ -8,6 +8,8 @@ export interface UseAuthReturn {
   isAuthenticated: boolean;
   isProfileComplete: boolean;
   hasSeenOnboarding: boolean;
+  hasCompletedBoarding: boolean;
+  currentBoardingStep: number;
 
   signIn: (
     email: string,
@@ -29,6 +31,8 @@ export interface UseAuthReturn {
   ) => Promise<{ success: boolean; error?: string }>;
 
   completeOnboarding: () => void;
+  completeBoarding: () => void;
+  setCurrentBoardingStep: (step: number) => void;
 
   initialize: () => Promise<void>;
 }
@@ -81,6 +85,8 @@ export function useAuth(): UseAuthReturn {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
+  const [hasCompletedBoarding, setHasCompletedBoarding] = useState(false);
+  const [currentBoardingStep, setCurrentBoardingStepState] = useState(1);
 
   const isAuthenticated = !!user;
   const isProfileComplete = !!(user?.username && user?.name);
@@ -246,6 +252,14 @@ export function useAuth(): UseAuthReturn {
     setHasSeenOnboarding(true);
   }, []);
 
+  const completeBoarding = useCallback(() => {
+    setHasCompletedBoarding(true);
+  }, []);
+
+  const setCurrentBoardingStep = useCallback((step: number) => {
+    setCurrentBoardingStepState(step);
+  }, []);
+
   useEffect(() => {
     const {
       data: { subscription },
@@ -271,6 +285,8 @@ export function useAuth(): UseAuthReturn {
     isAuthenticated,
     isProfileComplete,
     hasSeenOnboarding,
+    hasCompletedBoarding,
+    currentBoardingStep,
     signIn,
     signUp,
     signOut,
@@ -278,6 +294,8 @@ export function useAuth(): UseAuthReturn {
     resetPassword,
     updatePassword,
     completeOnboarding,
+    completeBoarding,
+    setCurrentBoardingStep,
     initialize,
   };
 }

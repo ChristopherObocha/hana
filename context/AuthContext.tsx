@@ -5,6 +5,8 @@ export interface AuthContextType {
   user: any;
   isLoading: boolean;
   hasSeenOnboarding: boolean;
+  hasCompletedBoarding: boolean;
+  currentBoardingStep: number;
   isAuthenticated: boolean;
   isProfileComplete: boolean;
   currentOnboardingStep: number;
@@ -28,6 +30,8 @@ export interface AuthContextType {
   ) => Promise<{ success: boolean; error?: string }>;
   initialize: () => Promise<void>;
   completeOnboarding: () => void;
+  completeBoarding: () => void;
+  setCurrentBoardingStep: (step: number) => void;
   nextOnboardingStep: () => void;
 }
 
