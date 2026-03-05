@@ -1,17 +1,31 @@
-import { useAuthStore, type User } from "@/store/auth-store";
+import { useAuth as useAuthHook } from "@/hooks/useAuth";
 import { createContext, ReactNode, useContext } from "react";
 
 export interface AuthContextType {
-  user: User | null;
+  user: any;
   isLoading: boolean;
   hasSeenOnboarding: boolean;
   isAuthenticated: boolean;
   isProfileComplete: boolean;
   currentOnboardingStep: number;
-  signUp: (email: string, password: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
-  updateUser: (profile: Partial<User>) => Promise<void>;
-  signOut: () => Promise<void>;
+  signUp: (
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; error?: string }>;
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; error?: string }>;
+  updateUser: (
+    profile: Partial<any>,
+  ) => Promise<{ success: boolean; error?: string }>;
+  signOut: () => Promise<{ success: boolean; error?: string }>;
+  resetPassword: (
+    email: string,
+  ) => Promise<{ success: boolean; error?: string }>;
+  updatePassword: (
+    newPassword: string,
+  ) => Promise<{ success: boolean; error?: string }>;
   initialize: () => Promise<void>;
   completeOnboarding: () => void;
   nextOnboardingStep: () => void;
@@ -20,38 +34,14 @@ export interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const {
-    user,
-    isLoading,
-    hasSeenOnboarding,
-    isAuthenticated,
-    isProfileComplete,
-    currentOnboardingStep,
-    signIn,
-    signUp,
-    signOut,
-    updateUser,
-    initialize,
-    completeOnboarding,
-    nextOnboardingStep,
-  } = useAuthStore();
+  const authHook = useAuthHook();
 
   return (
     <AuthContext.Provider
       value={{
-        user,
-        isLoading,
-        hasSeenOnboarding,
-        isAuthenticated,
-        isProfileComplete,
-        currentOnboardingStep,
-        signUp,
-        signIn,
-        signOut,
-        updateUser,
-        initialize,
-        completeOnboarding,
-        nextOnboardingStep,
+        ...authHook,
+        currentOnboardingStep: 1, // Default value since useAuth hook doesn't have this
+        nextOnboardingStep: () => {}, // Empty implementation since useAuth hook doesn't have this
       }}
     >
       {children}

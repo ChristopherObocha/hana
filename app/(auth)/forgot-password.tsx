@@ -103,7 +103,7 @@ const ForgotPasswordScreen = () => {
           <View style={styles.headerContainer}>
             <TouchableOpacity
               onPress={() => router.back()}
-              className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+              className="w-[50px] h-[50px] rounded-full bg-gray-200 flex items-center justify-center"
             >
               <ArrowLeft size={20} color="#374151" />
             </TouchableOpacity>
@@ -128,9 +128,9 @@ const ForgotPasswordScreen = () => {
           <Spacer size={40} vertical />
 
           <CustomTextInput
-            label="E-mail Address"
+            label="Email Address"
             keyboardType="email-address"
-            placeholder="Placeholder"
+            placeholder="example@email.com"
             value={formData.email}
             onChangeText={(value) => handleInputChange("email", value)}
             error={errors.email}

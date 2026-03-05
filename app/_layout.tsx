@@ -35,14 +35,9 @@ function RouteGuard() {
   const router = useRouter();
   const segments = useSegments();
   const isNavigating = useRef(false);
-  const {
-    user,
-    isLoading,
-    hasSeenOnboarding,
-    isAuthenticated,
-    isProfileComplete,
-    initialize,
-  } = useAuth();
+  const lastRoute = useRef<string | null>(null);
+  const { user, isLoading, hasSeenOnboarding, isAuthenticated, initialize } =
+    useAuth();
 
   useEffect(() => {
     initialize();
@@ -81,46 +76,43 @@ function RouteGuard() {
     const isInTabs = currentSegment === "(tabs)";
     const isInOnboarding = currentSegment === "onboarding";
 
+    console.log("RouteGuard state:", {
+      isAuthenticated,
+      hasSeenOnboarding,
+      currentSegment,
+      secondSegment,
+      isInAuthFlow,
+      isInOnboardingSteps,
+      isInTabs,
+      isInOnboarding,
+    });
+
     let targetRoute: string | null = null;
 
-    if (
+    if (isAuthenticated && !isInTabs) {
+      targetRoute = "/(tabs)";
+    } else if (!isAuthenticated && hasSeenOnboarding && !isInAuthFlow) {
+      targetRoute = "/(auth)/login";
+    } else if (
+      !isAuthenticated &&
       !hasSeenOnboarding &&
       !isInOnboarding &&
       !isInOnboardingSteps &&
       !isInAuthFlow
     ) {
-      targetRoute = "/onboarding";
-    } else if (hasSeenOnboarding && !isAuthenticated && !isInAuthFlow) {
-      targetRoute = "/(auth)/login";
-    } else if (
-      isAuthenticated &&
-      (isProfileComplete || hasSeenOnboarding) &&
-      !isInTabs
-    ) {
-      targetRoute = "/(tabs)";
-    } else if (
-      isAuthenticated &&
-      !isProfileComplete &&
-      !isInAuthFlow &&
-      !isInOnboardingSteps
-    ) {
       targetRoute = "/(auth)/onboarding";
     }
 
-    if (targetRoute) {
+    if (targetRoute && targetRoute !== lastRoute.current) {
+      console.log("RouteGuard: Navigating to", targetRoute);
+      lastRoute.current = targetRoute;
       isNavigating.current = true;
       router.replace(targetRoute as any);
       setTimeout(() => {
         isNavigating.current = false;
-      }, 100);
+      }, 200);
     }
-  }, [
-    isAuthenticated,
-    hasSeenOnboarding,
-    isProfileComplete,
-    isLoading,
-    segments,
-  ]);
+  }, [isAuthenticated, hasSeenOnboarding, isLoading, segments]);
 
   if (isLoading) {
     return <SplashScreen />;

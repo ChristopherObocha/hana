@@ -12,16 +12,16 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Toast } from "toastify-react-native";
+import z from "zod";
 
 import { Spacer } from "@/components";
 import CustomTextInput from "@/components/containers/TextInput";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import { LoginFormData, loginSchema } from "@/utils/validation/auth.validation";
-import z from "zod";
 
 const LogInScreen = () => {
   const insets = useSafeAreaInsets();
-  const { signIn, isLoading: authLoading } = useAuth();
+  const { signIn } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
@@ -33,13 +33,13 @@ const LogInScreen = () => {
   });
 
   const handleInputChange = (field: keyof LoginFormData, value: string) => {
-    setFormData({ ...formData, [field]: value });
-    setErrors({ ...errors, [field]: "" });
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
   const handleSubmit = async () => {
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
       loginSchema.parse(formData);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
@@ -55,18 +55,15 @@ const LogInScreen = () => {
           visibilityTime: 4000,
           autoHide: true,
         });
-      } else {
-        console.log("Login successful");
       }
-    } catch (error: any) {
+      // On success, RouteGuard handles navigation automatically
+    } catch (error) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       if (error instanceof z.ZodError) {
-        const newErrors: LoginFormData = { email: "", password: "" };
+        const newErrors = { email: "", password: "" };
         error.issues.forEach((issue) => {
-          if (issue.path.length > 0) {
-            const field = issue.path[0] as keyof LoginFormData;
-            newErrors[field] = issue.message;
-          }
+          const field = issue.path[0] as keyof LoginFormData;
+          if (field) newErrors[field] = issue.message;
         });
         setErrors(newErrors);
       }
@@ -76,72 +73,71 @@ const LogInScreen = () => {
   };
 
   return (
-    <>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1 px-[20px] bg-white"
-      >
-        <View style={{ paddingTop: insets.top + 24 }}>
-          <Spacer size={24} vertical />
-          <Text
-            style={{ fontFamily: "BricolageGrotesque-ExtraBold" }}
-            className="text-3xl font-bold"
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1 px-5 bg-white"
+    >
+      <View style={{ paddingTop: insets.top + 24 }}>
+        <Spacer size={24} vertical />
+        <Text
+          style={{ fontFamily: "BricolageGrotesque-ExtraBold" }}
+          className="text-3xl font-bold"
+        >
+          Welcome {"\n"}Back!
+        </Text>
+        <Spacer size={5} vertical />
+
+        <Text className="text-gray-400">
+          Login to your account or{" "}
+          <Link href="/(auth)/signup" className="text-primary underline">
+            sign up
+          </Link>{" "}
+          here.
+        </Text>
+        <Spacer size={50} vertical />
+
+        <CustomTextInput
+          label="Email address"
+          keyboardType="email-address"
+          placeholder="example@email.com"
+          value={formData.email}
+          onChangeText={(value) => handleInputChange("email", value)}
+          error={errors.email}
+        />
+        <Spacer size={16} vertical />
+
+        <CustomTextInput
+          label="Password"
+          isPassword
+          value={formData.password}
+          onChangeText={(value) => handleInputChange("password", value)}
+          error={errors.password}
+        />
+        <Spacer size={5} vertical />
+
+        <View style={styles.forgotPasswordContainer}>
+          <Link
+            href={"/(auth)/forgot-password"}
+            className="text-sm text-primary underline"
           >
-            Welcome {"\n"}Back!
-          </Text>
-          <Spacer size={5} vertical />
-
-          <Text className="text-gray-400">
-            Login to your account or{" "}
-            <Link href="/(auth)/signup" className="text-primary underline">
-              sign up
-            </Link>{" "}
-            here.
-          </Text>
-          <Spacer size={50} vertical />
-
-          <CustomTextInput
-            label="Email address"
-            keyboardType="email-address"
-            placeholder="example@email.com"
-            value={formData.email}
-            onChangeText={(value) => handleInputChange("email", value)}
-            error={errors.email}
-          />
-
-          <Spacer size={16} vertical />
-
-          <CustomTextInput
-            label="Password"
-            isPassword
-            value={formData.password}
-            onChangeText={(value) => handleInputChange("password", value)}
-            error={errors.password}
-          />
-          <Spacer size={5} vertical />
-          <View style={styles.forgotPasswordContainer}>
-            <Link
-              href={"/(auth)/forgot-password"}
-              className="text-sm text-primary underline"
-            >
-              Forgot Password?
-            </Link>
-          </View>
-          <Spacer size={20} vertical />
-          <TouchableOpacity
-            onPress={handleSubmit}
-            disabled={isSubmitting || authLoading}
-            className="bg-primary h-[45px] rounded-full w-full flex items-center justify-center disabled:opacity-50"
-          >
-            {isSubmitting || authLoading ? (
-              <ActivityIndicator color="white" size="small" />
-            ) : (
-              <Text className="text-white font-medium text-base">Log in</Text>
-            )}
-          </TouchableOpacity>
+            Forgot Password?
+          </Link>
         </View>
-      </KeyboardAvoidingView>
-    </>
+        <Spacer size={20} vertical />
+
+        <TouchableOpacity
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+          className="bg-primary h-[45px] rounded-full w-full items-center justify-center disabled:opacity-50"
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="white" size="small" />
+          ) : (
+            <Text className="text-white font-medium text-base">Log in</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 

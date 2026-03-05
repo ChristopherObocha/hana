@@ -95,9 +95,8 @@ export function useAuth(): UseAuthReturn {
       if (session?.user) {
         const profile = await fetchUserProfile(session.user.id);
         setUser(profile);
-        if (profile?.onboardingCompleted) {
-          setHasSeenOnboarding(true);
-        }
+        // Authenticated users should always be considered as having seen onboarding
+        setHasSeenOnboarding(true);
       } else {
         setUser(null);
         const hasSeen = await checkOnboardingStatus();
@@ -160,6 +159,7 @@ export function useAuth(): UseAuthReturn {
     try {
       await supabase.auth.signOut();
       setUser(null);
+      setHasSeenOnboarding(false); // Reset onboarding state after sign out
       return { success: true };
     } catch (error) {
       console.error("Sign out error:", error);

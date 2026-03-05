@@ -1,5 +1,5 @@
 import * as Haptics from "expo-haptics";
-import { Link, router } from "expo-router";
+import { Link } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -48,17 +48,21 @@ const SignUpScreen = () => {
       signUpSchema.parse(formData);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-      await signUp(formData.email, formData.password);
+      const result = await signUp(formData.email, formData.password);
 
-      console.log("Sign up successful, completing onboarding...");
-      completeOnboarding();
-      console.log("Onboarding completed, navigating to tabs...");
-
-      // Add delay to ensure RouteGuard processes state change
-      setTimeout(() => {
-        console.log("Navigating to tabs now");
-        router.replace("/(tabs)");
-      }, 300);
+      if (!result.success) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        Toast.show({
+          type: "error",
+          text1: "Sign Up Error",
+          text2: result.error,
+          position: "bottom",
+          visibilityTime: 4000,
+          autoHide: true,
+        });
+      } else {
+        completeOnboarding();
+      }
     } catch (error: any) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       if (error instanceof z.ZodError) {
@@ -75,7 +79,6 @@ const SignUpScreen = () => {
         });
         setErrors(newErrors);
       } else {
-        // Handle Supabase auth errors
         Toast.show({
           type: "error",
           text1: "Sign Up Error",

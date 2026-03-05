@@ -105,7 +105,7 @@ const ResetPasswordScreen = () => {
           <View style={styles.headerContainer}>
             <TouchableOpacity
               onPress={() => router.back()}
-              className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+              className="w-[50px] h-[50px] rounded-full bg-gray-100 flex items-center justify-center"
             >
               <ArrowLeft size={20} color="#374151" />
             </TouchableOpacity>
@@ -132,7 +132,6 @@ const ResetPasswordScreen = () => {
           <CustomTextInput
             label="Password"
             isPassword
-            placeholder="Placeholder"
             value={formData.password}
             onChangeText={(value) => handleInputChange("password", value)}
             error={errors.password}
@@ -143,7 +142,6 @@ const ResetPasswordScreen = () => {
           <CustomTextInput
             label="Confirm Password"
             isPassword
-            placeholder="Placeholder"
             value={formData.confirmPassword}
             onChangeText={(value) =>
               handleInputChange("confirmPassword", value)
