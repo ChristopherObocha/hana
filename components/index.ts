@@ -7,6 +7,7 @@ import Text from './ui/Text';
 import TextInput from './containers/TextInput';
 import UserTripCard from './cards/UserTripCard';
 import { AvatarGroup } from './ui/AvatarGroup';
+import PollsContainer from './containers/PollsContainer';
 
 export {
   ScreenContainer,
@@ -18,4 +19,5 @@ export {
   TextInput,
   UserTripCard,
   AvatarGroup,
+  PollsContainer,
 }

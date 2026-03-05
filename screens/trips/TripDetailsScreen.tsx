@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ImageBackground } from 'expo-image';
 
-import { AvatarGroup, Spacer, Text } from '@/components';
+import { AvatarGroup, Spacer, Text, PollsContainer } from '@/components';
 import { useTrips } from '@/context/TripsContext';
 import { useAuth } from '@/context/AuthContext';
 import { Colors, textStyles } from '@/constants';
@@ -39,6 +39,7 @@ export default function TripDetailScreen() {
   const { user } = useAuth();
   const { activeTrip, loadTrip, deleteTrip, leaveTrip, isLoading } = useTrips();
   const [selectedSegment, setSelectedSegment] = useState<Segment>('DISCOVER');
+
   useEffect(() => {
     loadTrip(tripId);
   }, [tripId, loadTrip]);
@@ -143,6 +144,8 @@ export default function TripDetailScreen() {
         <Spacer size={4} vertical /> 
         {/* For the divider - Unsure on if this should stay in design */}
         <View style={styles.divider} />
+        <Spacer size={16} vertical />
+        <PollsContainer groupId={tripId} />
     </View>
   );
 }
