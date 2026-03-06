@@ -29,6 +29,12 @@ export default function TripsLayout() {
           sheetAllowedDetents: [0.9, 1],
         }}
       />
+      <Stack.Screen
+        name="[tripId]/hotels/[hotelId]"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

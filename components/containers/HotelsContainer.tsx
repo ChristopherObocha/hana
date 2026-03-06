@@ -11,6 +11,7 @@ import { Colors } from '@/constants';
 import useHotelAction, { Hotel } from '@/hooks/useHotelAction';
 import { FlashList } from '@shopify/flash-list';
 import { Spacer, DiscoverCard } from '@/components';
+import { router } from 'expo-router';
 
 type SortOrder = 'asc' | 'desc';
 
@@ -76,7 +77,9 @@ export default function HotelsContainer({
               type="hotel"
               details={item}
               groupId={groupId}
-              onPress={() => {}}
+              onPress={() => {
+                router.push(`/(tabs)/(trips)/${groupId}/hotels/${item.id}`);
+              }}
               style={{
                 marginRight: isLeftColumn ? 8 : 0, // right margin for left column
                 marginLeft: !isLeftColumn ? 8 : 0, // left margin for right column
