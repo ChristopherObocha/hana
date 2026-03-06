@@ -12,18 +12,20 @@ import { ImageBackground } from 'expo-image';
 import { Spacer } from '..';
 import { PlusIcon } from 'lucide-react-native';
 import { Colors, textStyles } from '@/constants';
+import { useTrips } from '@/context/TripsContext';
+import { SavedItemType } from '@/hooks/useTripActions';
+import { useAuth } from '@/context/AuthContext';
 
 type DiscoverCardProps = {
   id: string;
   title: string;
   image: string;
-  type: 'hotel' | 'activity' | 'restaurant' | 'attraction';
-  description?: string;
-  price?: number;
-  rating?: number;
+  type: SavedItemType;
+  description?: string | null;
   details?: object;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
+  groupId: string;
 };
 
 const DiscoverCard = ({
@@ -32,12 +34,26 @@ const DiscoverCard = ({
   description,
   image,
   type,
-  price,
-  rating,
   details,
   onPress,
   style,
+  groupId,
 }: DiscoverCardProps) => {
+  const { user } = useAuth();
+  const { addSavedItemToTrip } = useTrips();
+
+  const handleAddToTrip = async () => {
+    if (!user?.id) return;
+    await addSavedItemToTrip(groupId, {
+      title,
+      description,
+      image,
+      type,
+      details,
+      created_by: user.id,
+      item_id: id,
+    });
+  };
   return (
     <Pressable onPress={onPress} style={[styles.container, style]}>
       <ImageBackground
@@ -59,7 +75,7 @@ const DiscoverCard = ({
 
       <View style={styles.detailsContainer}>
         <Text style={styles.viewMoreText}>View More</Text>
-        <Pressable style={styles.addButton}>
+        <Pressable style={styles.addButton} onPress={handleAddToTrip}>
           <PlusIcon size={14} color={Colors.light.background} />
           <Text style={styles.addButtonText}>Add</Text>
         </Pressable>

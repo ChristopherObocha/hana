@@ -143,11 +143,14 @@ export default function TripDetailScreen() {
       <View style={styles.divider} />
       <Spacer size={16} vertical />
       {selectedSegment === 'DISCOVER' && (
-        <HotelsContainer placeId={details?.destination_place_id} />
+        <HotelsContainer
+          placeId={details?.destination_place_id}
+          groupId={tripId}
+        />
       )}
-      {selectedSegment === 'SAVED' && (
-        <HotelsContainer placeId={details?.destination_place_id} />
-      )}
+      {/* {selectedSegment === 'SAVED' && (
+        
+      )} */}
       {/* {selectedSegment === 'ITINERARY' && <ItineraryContainer />} */}
       {selectedSegment === 'ACTIVITY' && <PollsContainer groupId={tripId} />}
     </View>

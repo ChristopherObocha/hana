@@ -1,10 +1,21 @@
 import React, {
-  createContext, useContext, useState,
-  useEffect, useCallback, ReactNode,
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
 } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { TripActions } from '@/hooks/useTripActions';
-import type { Trip, CreateTripInput, UpdateTripInput, UpdateTripDetailsInput, MemberRole } from '@/hooks/useTripActions';
+import type {
+  Trip,
+  CreateTripInput,
+  UpdateTripInput,
+  UpdateTripDetailsInput,
+  MemberRole,
+  SavedItem,
+} from '@/hooks/useTripActions';
 import type { LiteAPIPlace } from '@/hooks/usePlacesAutoComplete';
 
 type TripsContextType = {
@@ -22,12 +33,20 @@ type TripsContextType = {
   clearActiveTrip: () => void;
   createTrip: (input: CreateTripInput) => Promise<Trip>;
   updateTrip: (groupId: string, input: UpdateTripInput) => Promise<void>;
-  updateTripDetails: (groupId: string, input: UpdateTripDetailsInput) => Promise<void>;
+  updateTripDetails: (
+    groupId: string,
+    input: UpdateTripDetailsInput
+  ) => Promise<void>;
   updateDestination: (groupId: string, place: LiteAPIPlace) => Promise<void>;
   deleteTrip: (groupId: string) => Promise<void>;
   leaveTrip: (groupId: string) => Promise<void>;
-  updateMemberRole: (groupId: string, targetUserId: string, role: MemberRole) => Promise<void>;
+  updateMemberRole: (
+    groupId: string,
+    targetUserId: string,
+    role: MemberRole
+  ) => Promise<void>;
   removeMember: (groupId: string, targetUserId: string) => Promise<void>;
+  addSavedItemToTrip: (groupId: string, item: SavedItem) => Promise<void>;
 };
 
 const TripsContext = createContext<TripsContextType | undefined>(undefined);
@@ -74,67 +93,147 @@ export const TripsProvider = ({ children }: { children: ReactNode }) => {
 
   const clearActiveTrip = useCallback(() => setActiveTrip(null), []);
 
-  const createTrip = useCallback(async (input: CreateTripInput): Promise<Trip> => {
-    if (!user?.id) throw new Error('Not authenticated');
-    const trip = await run(() => TripActions.createTrip(user.id, input));
-    setMyTrips(prev => [trip, ...prev]);
-    return trip;
-  }, [user?.id]);
+  const createTrip = useCallback(
+    async (input: CreateTripInput): Promise<Trip> => {
+      if (!user?.id) throw new Error('Not authenticated');
+      const trip = await run(() => TripActions.createTrip(user.id, input));
+      setMyTrips((prev) => [trip, ...prev]);
+      return trip;
+    },
+    [user?.id]
+  );
 
-  const updateTrip = useCallback(async (groupId: string, input: UpdateTripInput) => {
-    const updated = await run(() => TripActions.updateTrip(groupId, input));
-    setMyTrips(prev => prev.map(t => t.id === groupId ? { ...t, ...updated } : t));
-    if (activeTrip?.id === groupId) setActiveTrip(prev => prev ? { ...prev, ...updated } : prev);
-  }, [activeTrip?.id]);
+  const updateTrip = useCallback(
+    async (groupId: string, input: UpdateTripInput) => {
+      const updated = await run(() => TripActions.updateTrip(groupId, input));
+      setMyTrips((prev) =>
+        prev.map((t) => (t.id === groupId ? { ...t, ...updated } : t))
+      );
+      if (activeTrip?.id === groupId)
+        setActiveTrip((prev) => (prev ? { ...prev, ...updated } : prev));
+    },
+    [activeTrip?.id]
+  );
 
-  const updateTripDetails = useCallback(async (groupId: string, input: UpdateTripDetailsInput) => {
-    const updated = await run(() => TripActions.updateTripDetails(groupId, input));
-    const patch = (t: Trip) => t.id === groupId ? { ...t, trip_details: { ...t.trip_details, ...updated } as Trip['trip_details'] } : t;
-    setMyTrips(prev => prev.map(patch));
-    if (activeTrip?.id === groupId) setActiveTrip(prev => prev ? patch(prev) : prev);
-  }, [activeTrip?.id]);
+  const updateTripDetails = useCallback(
+    async (groupId: string, input: UpdateTripDetailsInput) => {
+      const updated = await run(() =>
+        TripActions.updateTripDetails(groupId, input)
+      );
+      const patch = (t: Trip) =>
+        t.id === groupId
+          ? {
+              ...t,
+              trip_details: {
+                ...t.trip_details,
+                ...updated,
+              } as Trip['trip_details'],
+            }
+          : t;
+      setMyTrips((prev) => prev.map(patch));
+      if (activeTrip?.id === groupId)
+        setActiveTrip((prev) => (prev ? patch(prev) : prev));
+    },
+    [activeTrip?.id]
+  );
 
-  const updateDestination = useCallback(async (groupId: string, place: LiteAPIPlace) => {
-    const updated = await run(() => TripActions.updateDestination(groupId, place));
-    const patch = (t: Trip) => t.id === groupId ? { ...t, trip_details: { ...t.trip_details, ...updated } as Trip['trip_details'] } : t;
-    setMyTrips(prev => prev.map(patch));
-    if (activeTrip?.id === groupId) setActiveTrip(prev => prev ? patch(prev) : prev);
-  }, [activeTrip?.id]);
+  const updateDestination = useCallback(
+    async (groupId: string, place: LiteAPIPlace) => {
+      const updated = await run(() =>
+        TripActions.updateDestination(groupId, place)
+      );
+      const patch = (t: Trip) =>
+        t.id === groupId
+          ? {
+              ...t,
+              trip_details: {
+                ...t.trip_details,
+                ...updated,
+              } as Trip['trip_details'],
+            }
+          : t;
+      setMyTrips((prev) => prev.map(patch));
+      if (activeTrip?.id === groupId)
+        setActiveTrip((prev) => (prev ? patch(prev) : prev));
+    },
+    [activeTrip?.id]
+  );
 
-  const deleteTrip = useCallback(async (groupId: string) => {
-    if (!user?.id) throw new Error('Not authenticated');
-    await run(() => TripActions.deleteTrip(groupId, user.id));
-    setMyTrips(prev => prev.filter(t => t.id !== groupId));
-    if (activeTrip?.id === groupId) setActiveTrip(null);
-  }, [user?.id, activeTrip?.id]);
+  const deleteTrip = useCallback(
+    async (groupId: string) => {
+      if (!user?.id) throw new Error('Not authenticated');
+      await run(() => TripActions.deleteTrip(groupId, user.id));
+      setMyTrips((prev) => prev.filter((t) => t.id !== groupId));
+      if (activeTrip?.id === groupId) setActiveTrip(null);
+    },
+    [user?.id, activeTrip?.id]
+  );
 
-  const leaveTrip = useCallback(async (groupId: string) => {
-    if (!user?.id) throw new Error('Not authenticated');
-    await run(() => TripActions.leaveTrip(groupId, user.id));
-    setJoinedTrips(prev => prev.filter(t => t.id !== groupId));
-  }, [user?.id]);
+  const leaveTrip = useCallback(
+    async (groupId: string) => {
+      if (!user?.id) throw new Error('Not authenticated');
+      await run(() => TripActions.leaveTrip(groupId, user.id));
+      setJoinedTrips((prev) => prev.filter((t) => t.id !== groupId));
+    },
+    [user?.id]
+  );
 
-  const updateMemberRole = useCallback(async (groupId: string, targetUserId: string, role: MemberRole) => {
-    await run(() => TripActions.updateMemberRole(groupId, targetUserId, role));
-    if (activeTrip?.id === groupId) {
-      setActiveTrip(prev => prev ? {
-        ...prev,
-        group_members: prev.group_members?.map(m =>
-          m.user_id === targetUserId ? { ...m, role } : m
-        ),
-      } : prev);
-    }
-  }, [activeTrip?.id]);
+  const updateMemberRole = useCallback(
+    async (groupId: string, targetUserId: string, role: MemberRole) => {
+      await run(() =>
+        TripActions.updateMemberRole(groupId, targetUserId, role)
+      );
+      if (activeTrip?.id === groupId) {
+        setActiveTrip((prev) =>
+          prev
+            ? {
+                ...prev,
+                group_members: prev.group_members?.map((m) =>
+                  m.user_id === targetUserId ? { ...m, role } : m
+                ),
+              }
+            : prev
+        );
+      }
+    },
+    [activeTrip?.id]
+  );
 
-  const removeMember = useCallback(async (groupId: string, targetUserId: string) => {
-    await run(() => TripActions.removeMember(groupId, targetUserId));
-    if (activeTrip?.id === groupId) {
-      setActiveTrip(prev => prev ? {
-        ...prev,
-        group_members: prev.group_members?.filter(m => m.user_id !== targetUserId),
-      } : prev);
-    }
-  }, [activeTrip?.id]);
+  const removeMember = useCallback(
+    async (groupId: string, targetUserId: string) => {
+      await run(() => TripActions.removeMember(groupId, targetUserId));
+      if (activeTrip?.id === groupId) {
+        setActiveTrip((prev) =>
+          prev
+            ? {
+                ...prev,
+                group_members: prev.group_members?.filter(
+                  (m) => m.user_id !== targetUserId
+                ),
+              }
+            : prev
+        );
+      }
+    },
+    [activeTrip?.id]
+  );
+
+  const addSavedItemToTrip = useCallback(
+    async (groupId: string, item: SavedItem) => {
+      const added = await run(() =>
+        TripActions.addSavedItemToTrip(groupId, item)
+      );
+      setActiveTrip((prev) =>
+        prev
+          ? {
+              ...prev,
+              saved_items: [...(prev.saved_items || []), added as SavedItem],
+            }
+          : prev
+      );
+    },
+    [activeTrip?.id]
+  );
 
   useEffect(() => {
     if (!user?.id) return;
@@ -143,13 +242,27 @@ export const TripsProvider = ({ children }: { children: ReactNode }) => {
   }, [user?.id]);
 
   return (
-    <TripsContext.Provider value={{
-      myTrips, joinedTrips, activeTrip, isLoading, error,
-      refreshMyTrips, refreshJoinedTrips,
-      loadTrip, clearActiveTrip,
-      createTrip, updateTrip, updateTripDetails, updateDestination,
-      deleteTrip, leaveTrip, updateMemberRole, removeMember,
-    }}>
+    <TripsContext.Provider
+      value={{
+        myTrips,
+        joinedTrips,
+        activeTrip,
+        isLoading,
+        error,
+        refreshMyTrips,
+        refreshJoinedTrips,
+        loadTrip,
+        clearActiveTrip,
+        createTrip,
+        updateTrip,
+        updateTripDetails,
+        updateDestination,
+        deleteTrip,
+        leaveTrip,
+        updateMemberRole,
+        removeMember,
+        addSavedItemToTrip,
+      }}>
       {children}
     </TripsContext.Provider>
   );

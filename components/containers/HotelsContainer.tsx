@@ -8,8 +8,10 @@ import { Spacer, DiscoverCard } from '@/components';
 
 export default function HotelsContainer({
   placeId,
+  groupId,
 }: {
   placeId: string | null | undefined;
+  groupId: string;
 }) {
   const { hotels, fetchHotels, isLoading, error } = useHotelAction();
 
@@ -50,8 +52,8 @@ export default function HotelsContainer({
               description={item.hotelDescription}
               image={item.main_photo}
               type="hotel"
-              rating={item.rating}
               details={item}
+              groupId={groupId}
               onPress={() => {}}
               style={{
                 marginRight: isLeftColumn ? 8 : 0, // right margin for left column

@@ -5,6 +5,14 @@ export type GroupVisibility = 'public' | 'private';
 export type GroupType = 'trip' | 'event';
 export type MemberRole = 'owner' | 'admin' | 'member';
 
+export type SavedItemType =
+  | 'hotel'
+  | 'activity'
+  | 'restaurant'
+  | 'flight'
+  | 'transport'
+  | 'other';
+
 export type TripDetails = {
   id: string;
   group_id: string;
@@ -40,6 +48,7 @@ export type Trip = {
   created_at: string;
   trip_details?: TripDetails | null;
   group_members?: GroupMember[];
+  saved_items?: SavedItem[];
 };
 
 export type CreateTripInput = {
@@ -64,6 +73,22 @@ export type UpdateTripDetailsInput = {
   cover_image_url?: string | null;
 };
 
+export type SavedItem = {
+  id?: string;
+  item_id?: string;
+  group_id?: string;
+  title: string;
+  description?: string | null;
+  image?: string | null;
+  type: SavedItemType;
+  details?: object;
+  created_by?: string;
+  created_at?: string;
+  updated_at?: string;
+  added_to_itinerary?: boolean;
+  itinerary_item_id?: string;
+};
+
 // No hook — just exported async functions that accept userId where needed
 export const TripActions = {
   createTrip: async (userId: string, input: CreateTripInput): Promise<Trip> => {
@@ -86,7 +111,9 @@ export const TripActions = {
   fetchMyTrips: async (userId: string): Promise<Trip[]> => {
     const { data, error } = await supabase
       .from('groups')
-      .select('*, trip_details(*), group_members(*, profiles(id, name, username, profile_image_url))')
+      .select(
+        '*, trip_details(*), group_members(*, profiles(id, name, username, profile_image_url))'
+      )
       .eq('type', 'trip')
       .eq('owner_id', userId)
       .order('created_at', { ascending: false });
@@ -97,7 +124,9 @@ export const TripActions = {
   fetchJoinedTrips: async (userId: string): Promise<Trip[]> => {
     const { data, error } = await supabase
       .from('group_members')
-      .select('group:group_id(*, trip_details(*), group_members(*, profiles(id, name, username, profile_image_url)))')
+      .select(
+        'group:group_id(*, trip_details(*), group_members(*, profiles(id, name, username, profile_image_url)))'
+      )
       .eq('user_id', userId)
       .neq('role', 'owner'); // exclude trips they own — fetchMyTrips covers those
     if (error) throw error;
@@ -108,19 +137,24 @@ export const TripActions = {
     try {
       const { data, error } = await supabase
         .from('groups')
-        .select('*, trip_details(*), group_members(*, profiles(id, name, username, profile_image_url))')
+        .select(
+          '*, trip_details(*), group_members(*, profiles(id, name, username, profile_image_url))'
+        )
         .eq('id', groupId)
         .eq('type', 'trip')
         .single();
       if (error) throw error;
       return data as Trip;
     } catch (error) {
-      console.error("Failed to fetch trip by ID:", error);
-      throw error;  
+      console.error('Failed to fetch trip by ID:', error);
+      throw error;
     }
   },
 
-  updateTrip: async (groupId: string, input: UpdateTripInput): Promise<Trip> => {
+  updateTrip: async (
+    groupId: string,
+    input: UpdateTripInput
+  ): Promise<Trip> => {
     const { data, error } = await supabase
       .from('groups')
       .update(input)
@@ -131,7 +165,10 @@ export const TripActions = {
     return data as Trip;
   },
 
-  updateTripDetails: async (groupId: string, input: UpdateTripDetailsInput): Promise<TripDetails> => {
+  updateTripDetails: async (
+    groupId: string,
+    input: UpdateTripDetailsInput
+  ): Promise<TripDetails> => {
     const { data, error } = await supabase
       .from('trip_details')
       .update(input)
@@ -142,7 +179,10 @@ export const TripActions = {
     return data as TripDetails;
   },
 
-  updateDestination: async (groupId: string, place: LiteAPIPlace): Promise<TripDetails> => {
+  updateDestination: async (
+    groupId: string,
+    place: LiteAPIPlace
+  ): Promise<TripDetails> => {
     const { data, error } = await supabase
       .from('trip_details')
       .update({
@@ -175,7 +215,11 @@ export const TripActions = {
     if (error) throw error;
   },
 
-  updateMemberRole: async (groupId: string, targetUserId: string, role: MemberRole) => {
+  updateMemberRole: async (
+    groupId: string,
+    targetUserId: string,
+    role: MemberRole
+  ) => {
     const { data, error } = await supabase
       .from('group_members')
       .update({ role })
@@ -187,12 +231,37 @@ export const TripActions = {
     return data;
   },
 
-  removeMember: async (groupId: string, targetUserId: string): Promise<void> => {
+  removeMember: async (
+    groupId: string,
+    targetUserId: string
+  ): Promise<void> => {
     const { error } = await supabase
       .from('group_members')
       .delete()
       .eq('group_id', groupId)
       .eq('user_id', targetUserId);
     if (error) throw error;
+  },
+
+  addSavedItemToTrip: async (
+    groupId: string,
+    item: SavedItem
+  ): Promise<SavedItem | null> => {
+    const { data, error } = await supabase
+      .from('saved_itinerary_items')
+      .insert({
+        group_id: groupId,
+        title: item.title,
+        description: item.description ?? null,
+        image: item.image ?? null,
+        type: item.type,
+        details: item.details ?? {},
+        created_by: item.created_by ?? null,
+        item_id: item.item_id ?? null,
+      })
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data as SavedItem;
   },
 };
