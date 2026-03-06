@@ -1,10 +1,18 @@
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import React, { useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  Pressable,
+} from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { Colors } from '@/constants';
 import useHotelAction, { Hotel } from '@/hooks/useHotelAction';
 import { FlashList } from '@shopify/flash-list';
 import { Spacer, DiscoverCard } from '@/components';
+
+type SortOrder = 'asc' | 'desc';
 
 export default function HotelsContainer({
   placeId,
@@ -14,6 +22,7 @@ export default function HotelsContainer({
   groupId: string;
 }) {
   const { hotels, fetchHotels, isLoading, error } = useHotelAction();
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
   useEffect(() => {
     if (placeId) {
@@ -22,6 +31,12 @@ export default function HotelsContainer({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [placeId]);
+
+  const sortedHotels = useMemo(() => {
+    return hotels.sort((a, b) => {
+      return sortOrder === 'asc' ? a.stars - b.stars : b.stars - a.stars;
+    });
+  }, [hotels, sortOrder]);
 
   if (isLoading) {
     return (
@@ -41,8 +56,15 @@ export default function HotelsContainer({
 
   return (
     <View style={styles.container}>
+      <Pressable
+        onPress={() =>
+          setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))
+        }>
+        <Text>Stars {sortOrder === 'desc' ? '↓' : '↑'}</Text>
+      </Pressable>
+      <Spacer size={16} vertical />
       <FlashList
-        data={hotels}
+        data={sortedHotels}
         renderItem={({ item, index }: { item: Hotel; index: number }) => {
           const isLeftColumn = index % 2 === 0;
           return (
