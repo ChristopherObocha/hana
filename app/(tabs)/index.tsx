@@ -1,9 +1,30 @@
+import WelcomeModal from "@/components/WelcomeModal";
 import { useAuth } from "@/context/AuthContext";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 export default function HomeScreen() {
-  const { signOut } = useAuth();
+  const { signOut, hasCompletedBoarding, completeBoarding } = useAuth();
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+
+  useEffect(() => {
+    console.log(
+      "HomeScreen useEffect - hasCompletedBoarding:",
+      hasCompletedBoarding,
+    );
+    if (!hasCompletedBoarding) {
+      setShowWelcomeModal(true);
+      console.log("Showing welcome modal");
+    } else {
+      setShowWelcomeModal(false);
+      console.log("Hiding welcome modal");
+    }
+  }, [hasCompletedBoarding]);
+
+  const handleCloseWelcomeModal = async () => {
+    await completeBoarding();
+    setShowWelcomeModal(false);
+  };
 
   const handleSignOut = async () => {
     try {
@@ -22,6 +43,11 @@ export default function HomeScreen() {
       >
         <Text className="text-white font-semibold">Sign Out</Text>
       </Pressable>
+
+      <WelcomeModal
+        visible={showWelcomeModal}
+        onClose={handleCloseWelcomeModal}
+      />
     </View>
   );
 }

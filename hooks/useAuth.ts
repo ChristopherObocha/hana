@@ -2,6 +2,61 @@ import { User } from "@/store/auth-store";
 import { supabase } from "@/utils/supabase/client";
 import { useCallback, useEffect, useState } from "react";
 
+// Simple storage abstraction that works on web and handles AsyncStorage gracefully
+const storage = {
+  async getItem(key: string): Promise<string | null> {
+    try {
+      console.log("storage.getItem called for key:", key);
+      // Try AsyncStorage first (for native)
+      if (typeof window !== "undefined" && window.localStorage) {
+        const value = localStorage.getItem(key);
+        console.log("localStorage.getItem result:", value);
+        return value;
+      }
+      // Fallback for AsyncStorage if available
+      const AsyncStorage =
+        require("@react-native-async-storage/async-storage").default;
+      const value = await AsyncStorage.getItem(key);
+      console.log("AsyncStorage.getItem result:", value);
+      return value;
+    } catch (error) {
+      console.log("storage.getItem error:", error);
+      // Final fallback to localStorage
+      if (typeof window !== "undefined" && window.localStorage) {
+        const value = localStorage.getItem(key);
+        console.log("fallback localStorage.getItem result:", value);
+        return value;
+      }
+      console.log("storage.getItem returning null");
+      return null;
+    }
+  },
+
+  async setItem(key: string, value: string): Promise<void> {
+    try {
+      console.log("storage.setItem called for key:", key, "value:", value);
+      // Try AsyncStorage first (for native)
+      if (typeof window !== "undefined" && window.localStorage) {
+        localStorage.setItem(key, value);
+        console.log("localStorage.setItem completed");
+        return;
+      }
+      // Fallback for AsyncStorage if available
+      const AsyncStorage =
+        require("@react-native-async-storage/async-storage").default;
+      await AsyncStorage.setItem(key, value);
+      console.log("AsyncStorage.setItem completed");
+    } catch (error) {
+      console.log("storage.setItem error:", error);
+      // Final fallback to localStorage
+      if (typeof window !== "undefined" && window.localStorage) {
+        localStorage.setItem(key, value);
+        console.log("fallback localStorage.setItem completed");
+      }
+    }
+  },
+};
+
 export interface UseAuthReturn {
   user: User | null;
   isLoading: boolean;
@@ -81,6 +136,20 @@ async function checkOnboardingStatus(): Promise<boolean> {
   return false;
 }
 
+async function saveBoardingStatus(hasCompleted: boolean): Promise<void> {
+  console.log("saveBoardingStatus called with:", hasCompleted);
+  await storage.setItem("@boarding_completed", hasCompleted.toString());
+  console.log("saveBoardingStatus completed");
+}
+
+async function loadBoardingStatus(): Promise<boolean> {
+  console.log("loadBoardingStatus called");
+  const value = await storage.getItem("@boarding_completed");
+  const result = value === "true";
+  console.log("loadBoardingStatus result:", result, "(raw value:", value, ")");
+  return result;
+}
+
 export function useAuth(): UseAuthReturn {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -108,6 +177,10 @@ export function useAuth(): UseAuthReturn {
         const hasSeen = await checkOnboardingStatus();
         setHasSeenOnboarding(hasSeen);
       }
+
+      // Load boarding completion status
+      const boardingCompleted = await loadBoardingStatus();
+      setHasCompletedBoarding(boardingCompleted);
     } catch (error) {
       console.error("Error initializing auth:", error);
       setUser(null);
@@ -140,26 +213,33 @@ export function useAuth(): UseAuthReturn {
     }
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+  const signUp = useCallback(
+    async (email: string, password: string) => {
+      try {
+        const { data, error } = await supabase.auth.signUp({ email, password });
 
-      if (error) {
-        return { success: false, error: error.message };
+        if (error) {
+          return { success: false, error: error.message };
+        }
+
+        if (data.user) {
+          const profile = await fetchUserProfile(data.user.id);
+          setUser(profile);
+
+          setHasCompletedBoarding(false);
+          await saveBoardingStatus(false);
+
+          return { success: true };
+        }
+
+        return { success: false, error: "No user data returned" };
+      } catch (error) {
+        console.error("Sign up error:", error);
+        return { success: false, error: "An unexpected error occurred" };
       }
-
-      if (data.user) {
-        const profile = await fetchUserProfile(data.user.id);
-        setUser(profile);
-        return { success: true };
-      }
-
-      return { success: false, error: "No user data returned" };
-    } catch (error) {
-      console.error("Sign up error:", error);
-      return { success: false, error: "An unexpected error occurred" };
-    }
-  }, []);
+    },
+    [saveBoardingStatus],
+  );
 
   const signOut = useCallback(async () => {
     try {
@@ -252,8 +332,9 @@ export function useAuth(): UseAuthReturn {
     setHasSeenOnboarding(true);
   }, []);
 
-  const completeBoarding = useCallback(() => {
+  const completeBoarding = useCallback(async () => {
     setHasCompletedBoarding(true);
+    await saveBoardingStatus(true);
   }, []);
 
   const setCurrentBoardingStep = useCallback((step: number) => {

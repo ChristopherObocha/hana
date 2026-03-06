@@ -1,5 +1,5 @@
 import BoardingHeader from "@/components/boarding/boardingHeader";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -17,26 +17,31 @@ const BoardingStep4 = () => {
     "💎 Premium experiences",
   ];
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    completeBoarding();
+    await completeBoarding();
     router.replace("/(tabs)");
   };
 
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.back();
+    router.replace("/boarding/step-3");
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    completeBoarding();
+    await completeBoarding();
     router.replace("/(tabs)");
   };
 
   return (
     <SafeAreaView className="flex-1 px-[20px] items-center justify-between bg-white">
-      <BoardingHeader currentStep={4} totalSteps={4} onSkip={handleSkip} />
+      <BoardingHeader
+        currentStep={4}
+        totalSteps={4}
+        onSkip={handleSkip}
+        onBack={handleBack}
+      />
 
       <View className="flex-1 gap-y-6 w-full">
         <View className="gap-y-4">
@@ -63,12 +68,16 @@ const BoardingStep4 = () => {
               onPress={() => setSelectedBudget(option)}
             >
               <View
-                className={`h-[20px] w-[20px] rounded-full border ${
+                className={`h-[20px] w-[20px] rounded-full flex items-center justify-center border ${
                   selectedBudget === option
                     ? "border-primary"
                     : "border-gray-300"
                 }`}
-              />
+              >
+                {selectedBudget === option && (
+                  <View className="h-[15px] w-[15px] rounded-full bg-primary" />
+                )}
+              </View>
               <Text
                 className={`text-base font-medium ${
                   selectedBudget === option ? "text-primary" : "text-gray-700"

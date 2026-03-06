@@ -62,6 +62,7 @@ const SignUpScreen = () => {
           autoHide: true,
         });
       } else {
+        // Navigate to boarding step after successful sign-up
         router.replace("/boarding/step-1");
       }
     } catch (error: any) {

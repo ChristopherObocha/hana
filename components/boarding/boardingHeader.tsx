@@ -8,12 +8,14 @@ interface OnboardingHeaderProps {
   currentStep: number;
   totalSteps: number;
   onSkip?: () => void;
+  onBack?: () => void;
 }
 
 const BoardingHeader = ({
   currentStep,
   totalSteps,
   onSkip,
+  onBack,
 }: OnboardingHeaderProps) => {
   const radius = 18;
   const strokeWidth = 3;
@@ -25,7 +27,7 @@ const BoardingHeader = ({
   return (
     <View className="flex-row w-full justify-between items-center mb-8">
       <TouchableOpacity
-        onPress={() => router.back()}
+        onPress={onBack || (() => router.back())}
         className="w-[40px] h-[40px] rounded-full bg-gray-200 flex items-center justify-center"
       >
         <ArrowLeft size={15} color="#374151" />

@@ -70,6 +70,14 @@ function RouteGuard() {
       "onboarding-step-3",
     ]);
 
+    const BOARDING_STEPS = new Set([
+      "boarding",
+      "step-1",
+      "step-2",
+      "step-3",
+      "step-4",
+    ]);
+
     const [currentSegment, secondSegment] = segments;
     const isInAuthFlow =
       AUTH_ROUTES.has(currentSegment) ||
@@ -80,16 +88,22 @@ function RouteGuard() {
       currentSegment === "(auth)" &&
       secondSegment &&
       ONBOARDING_STEPS.has(secondSegment);
+    const isInBoardingSteps =
+      currentSegment === "boarding" &&
+      secondSegment &&
+      BOARDING_STEPS.has(secondSegment);
     const isInTabs = currentSegment === "(tabs)";
     const isInOnboarding = currentSegment === "onboarding";
 
     console.log("RouteGuard state:", {
       isAuthenticated,
       hasSeenOnboarding,
+      hasCompletedBoarding,
       currentSegment,
       secondSegment,
       isInAuthFlow,
       isInOnboardingSteps,
+      isInBoardingSteps,
       isInTabs,
       isInOnboarding,
     });
@@ -106,10 +120,15 @@ function RouteGuard() {
       !isInAuthFlow
     ) {
       targetRoute = "/(auth)/onboarding";
-    } else if (isAuthenticated && !hasCompletedBoarding && !isInTabs) {
+    } else if (
+      isAuthenticated &&
+      !hasCompletedBoarding &&
+      !isInTabs &&
+      !isInBoardingSteps
+    ) {
       // Route to appropriate boarding step
       targetRoute = `/boarding/step-${currentBoardingStep}`;
-    } else if (isAuthenticated && !isInTabs) {
+    } else if (isAuthenticated && !isInTabs && !isInBoardingSteps) {
       targetRoute = "/(tabs)";
     }
 
@@ -122,7 +141,13 @@ function RouteGuard() {
         isNavigating.current = false;
       }, 200);
     }
-  }, [isAuthenticated, hasSeenOnboarding, isLoading, segments]);
+  }, [
+    isAuthenticated,
+    hasSeenOnboarding,
+    hasCompletedBoarding,
+    isLoading,
+    segments,
+  ]);
 
   if (isLoading) {
     return <SplashScreen />;
@@ -132,6 +157,7 @@ function RouteGuard() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="onboarding" />
       <Stack.Screen name="(auth)" />
+      <Stack.Screen name="boarding" />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
         name="modal"

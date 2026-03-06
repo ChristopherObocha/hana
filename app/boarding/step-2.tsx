@@ -48,7 +48,7 @@ const BoardingStep2 = () => {
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setCurrentBoardingStep(1);
-    router.back();
+    router.replace("/boarding/step-1");
   };
 
   const handleSkip = () => {
@@ -58,7 +58,12 @@ const BoardingStep2 = () => {
 
   return (
     <SafeAreaView className="flex-1 px-[20px] items-center justify-between bg-white">
-      <BoardingHeader currentStep={2} totalSteps={4} onSkip={handleSkip} />
+      <BoardingHeader
+        currentStep={2}
+        totalSteps={4}
+        onSkip={handleSkip}
+        onBack={handleBack}
+      />
 
       <View className="flex-1 gap-y-6 w-full">
         <View className="gap-y-4">

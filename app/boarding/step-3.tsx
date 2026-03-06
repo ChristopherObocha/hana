@@ -28,7 +28,7 @@ const BoardingStep3 = () => {
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setCurrentBoardingStep(2);
-    router.back();
+    router.replace("/boarding/step-2");
   };
 
   const handleSkip = () => {
@@ -38,7 +38,12 @@ const BoardingStep3 = () => {
 
   return (
     <SafeAreaView className="flex-1 px-[20px] items-center justify-between bg-white">
-      <BoardingHeader currentStep={3} totalSteps={4} onSkip={handleSkip} />
+      <BoardingHeader
+        currentStep={3}
+        totalSteps={4}
+        onSkip={handleSkip}
+        onBack={handleBack}
+      />
 
       <View className="flex-1 gap-y-6 w-full">
         <View className="gap-y-4">
@@ -65,12 +70,16 @@ const BoardingStep3 = () => {
               onPress={() => setSelectedCompanion(option)}
             >
               <View
-                className={`h-[20px] w-[20px] rounded-full border ${
+                className={`h-[20px] w-[20px] rounded-full flex items-center justify-center border ${
                   selectedCompanion === option
                     ? "border-primary"
                     : "border-gray-300"
                 }`}
-              />
+              >
+                {selectedCompanion === option && (
+                  <View className="h-[15px] w-[15px] rounded-full bg-primary" />
+                )}
+              </View>
               <Text
                 className={`text-base font-medium ${
                   selectedCompanion === option

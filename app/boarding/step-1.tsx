@@ -59,12 +59,16 @@ const BoardingStep1 = () => {
               onPress={() => setSelectedOption(option)}
             >
               <View
-                className={`h-[20px] w-[20px] rounded-full border ${
+                className={`h-[20px] w-[20px] rounded-full flex items-center justify-center border ${
                   selectedOption === option
                     ? "border-primary"
                     : "border-gray-300"
                 }`}
-              />
+              >
+                {selectedOption === option && (
+                  <View className="h-[15px] w-[15px] rounded-full bg-primary" />
+                )}
+              </View>
               <Text
                 className={`text-base font-medium ${
                   selectedOption === option ? "text-primary" : "text-gray-700"
