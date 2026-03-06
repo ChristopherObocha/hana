@@ -41,11 +41,63 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "react-native",
+          "organization": "splash-za"
+        }
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "fonts": [
+      {
+        "src": "./assets/fonts/Bricolage_Grotesque/static/BricolageGrotesque-Regular.ttf",
+        "family": "BricolageGrotesque",
+        "weight": "400"
+      },
+      {
+        "src": "./assets/fonts/Bricolage_Grotesque/static/BricolageGrotesque-Medium.ttf",
+        "family": "BricolageGrotesque",
+        "weight": "500"
+      },
+      {
+        "src": "./assets/fonts/Bricolage_Grotesque/static/BricolageGrotesque-SemiBold.ttf",
+        "family": "BricolageGrotesque",
+        "weight": "600"
+      },
+      {
+        "src": "./assets/fonts/Bricolage_Grotesque/static/BricolageGrotesque-Bold.ttf",
+        "family": "BricolageGrotesque",
+        "weight": "700"
+      },
+      {
+        "src": "./assets/fonts/Bricolage_Grotesque/static/BricolageGrotesque-ExtraBold.ttf",
+        "family": "BricolageGrotesque",
+        "weight": "800"
+      },
+      {
+        "src": "./assets/fonts/Bricolage_Grotesque/static/BricolageGrotesque-Light.ttf",
+        "family": "BricolageGrotesque",
+        "weight": "300"
+      },
+      {
+        "src": "./assets/fonts/Bricolage_Grotesque/static/BricolageGrotesque-ExtraLight.ttf",
+        "family": "BricolageGrotesque",
+        "weight": "200"
+      }
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0a8997b2-7e55-46d1-9a6d-2db2e2145668"
+      }
     }
   }
 }

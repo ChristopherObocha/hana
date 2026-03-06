@@ -1,163 +1,52 @@
-import { supabase } from "@/utils/supabase/client";
-import { createContext, useEffect, useState, ReactNode, useContext } from "react";
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  username: string;
-  profileImage?: string;
-  onboardingCompleted?: boolean;
-  role?: 'vendor' | 'user';
-}
+import { useAuth as useAuthHook } from "@/hooks/useAuth";
+import { createContext, ReactNode, useContext } from "react";
 
 export interface AuthContextType {
-  user: User | null;
+  user: any;
   isLoading: boolean;
-  signUp: (email: string, password: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
-  updateUser: (profile: Partial<User>) => Promise<void>;
-  signOut: () => Promise<void>;
+  hasSeenOnboarding: boolean;
+  hasCompletedBoarding: boolean;
+  currentBoardingStep: number;
+  isAuthenticated: boolean;
+  isProfileComplete: boolean;
+  currentOnboardingStep: number;
+  signUp: (
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; error?: string }>;
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; error?: string }>;
+  updateUser: (
+    profile: Partial<any>,
+  ) => Promise<{ success: boolean; error?: string }>;
+  signOut: () => Promise<{ success: boolean; error?: string }>;
+  resetPassword: (
+    email: string,
+  ) => Promise<{ success: boolean; error?: string }>;
+  updatePassword: (
+    newPassword: string,
+  ) => Promise<{ success: boolean; error?: string }>;
+  initialize: () => Promise<void>;
+  completeOnboarding: () => void;
+  completeBoarding: () => void;
+  setCurrentBoardingStep: (step: number) => void;
+  nextOnboardingStep: () => void;
 }
-
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    checkSession();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-  };
-
-  const checkSession = async () => {
-    setIsLoading(true);
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (session?.user) {
-        const profile = await fetchUserProfile(session.user.id);
-        setUser(profile);
-      } else {
-        setUser(null);
-      }
-    } catch (error) {
-      console.error("Error checking session:", error);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchUserProfile = async (userId: string): Promise<User | null> => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (error) {
-        console.error("Error fetching profile:", error);
-        return null;
-      }
-      if (!data) {
-        console.error("No profile data returned");
-        return null;
-      }
-
-      const authUser = await supabase.auth.getUser();
-      if (!authUser.data.user) {
-        console.error("No auth user found");
-        return null;
-      }
-
-      return {
-        id: data.id,
-        name: data.name,
-        username: data.username,
-        email: authUser.data.user.email || "",
-        profileImage: data.profile_image_url,
-        onboardingCompleted: data.onboarding_completed,
-      };
-    } catch (error) {
-      console.error("Error in fetchUserProfile:", error);
-      return null;
-    }
-  };
-
-  const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) throw error;
-
-    if (data.user) {
-      const profile = await fetchUserProfile(data.user.id);
-      setUser(profile);
-    }
-  };
-
-  const signUp = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (error) throw error;
-
-    if (data.user) {
-      const profile = await fetchUserProfile(data.user.id);
-      setUser(profile);
-    }
-  };
-
-  const updateUser = async (userData: Partial<User>) => {
-    if (!user) return;
-
-    try {
-      const updateData: any = {};
-      if (userData.name !== undefined) updateData.name = userData.name;
-      if (userData.username !== undefined)
-        updateData.username = userData.username;
-      if (userData.profileImage !== undefined)
-        updateData.profile_image_url = userData.profileImage;
-      if (userData.onboardingCompleted !== undefined)
-        updateData.onboarding_completed = userData.onboardingCompleted;
-
-      const { error, data } = await supabase
-        .from("profiles")
-        .update(updateData)
-        .eq("id", user.id)
-        .select()
-        .single();
-      if (error) throw error;
-
-      if (data) {
-        console.log(data);
-        const profile = await fetchUserProfile(data.id);
-        setUser(profile);
-      }
-    } catch (error) {
-      console.error("Error updating user:", error);
-      throw error;
-    }
-  };
+  const authHook = useAuthHook();
 
   return (
     <AuthContext.Provider
-      value={{ user, signUp, updateUser, signIn, signOut, isLoading }}
+      value={{
+        ...authHook,
+        currentOnboardingStep: 1, // Default value since useAuth hook doesn't have this
+        nextOnboardingStep: () => {}, // Empty implementation since useAuth hook doesn't have this
+      }}
     >
       {children}
     </AuthContext.Provider>

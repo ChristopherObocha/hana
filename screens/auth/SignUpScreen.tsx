@@ -1,110 +1,169 @@
-import {  ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import React, { useState } from "react";
+import * as Haptics from "expo-haptics";
 import { Link, useRouter } from "expo-router";
-import { KeyboardAwareScrollView, KeyboardToolbar } from "react-native-keyboard-controller";
+import React, { useState } from "react";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Toast } from "toastify-react-native";
 
-import { Spacer, TextInput } from "@/components";
-import { useAuth } from "@/context/AuthContext";
+import { Spacer } from "@/components";
+import CustomTextInput from "@/components/containers/TextInput";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  SignUpFormData,
+  signUpSchema,
+} from "@/utils/validation/auth.validation";
+import z from "zod";
 
 const SignUpScreen = () => {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { signUp, isLoading: authLoading, completeOnboarding } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<SignUpFormData>({
+    fullName: "",
+    email: "",
+    password: "",
+  });
+  const [errors, setErrors] = useState<SignUpFormData>({
+    fullName: "",
+    email: "",
+    password: "",
+  });
 
+  const handleInputChange = (field: keyof SignUpFormData, value: string) => {
+    setFormData({ ...formData, [field]: value });
+    setErrors({ ...errors, [field]: "" });
+  };
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const { signUp } = useAuth();
-
-  const handleSignUp = async () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please fill in all fields");
-    }
-
-    if (password.length < 3) {
-      Alert.alert("Error", "Password must be at least 3 characters");
-    }
-
-    setIsLoading(true);
+  const handleSubmit = async () => {
     try {
-      await signUp(email, password);
-      router.push("/(auth)/onboarding");
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Failed to sign up. Please try again.");
+      setIsSubmitting(true);
+      signUpSchema.parse(formData);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      const result = await signUp(formData.email, formData.password);
+
+      if (!result.success) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        Toast.show({
+          type: "error",
+          text1: "Sign Up Error",
+          text2: result.error,
+          position: "bottom",
+          visibilityTime: 4000,
+          autoHide: true,
+        });
+      } else {
+        // Navigate to boarding step after successful sign-up
+        router.replace("/boarding/step-1");
+      }
+    } catch (error: any) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      if (error instanceof z.ZodError) {
+        const newErrors: SignUpFormData = {
+          fullName: "",
+          email: "",
+          password: "",
+        };
+        error.issues.forEach((issue) => {
+          if (issue.path.length > 0) {
+            const field = issue.path[0] as keyof SignUpFormData;
+            newErrors[field] = issue.message;
+          }
+        });
+        setErrors(newErrors);
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Sign Up Error",
+          text2: error.message || "An error occurred during sign up",
+          position: "bottom",
+          visibilityTime: 4000,
+        });
+      }
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
     <>
-      <KeyboardAwareScrollView 
-        bottomOffset={162} 
-        contentContainerStyle={[styles.contentContainer, { paddingTop: insets.top + 24 }]}
-        >
-      <Spacer size={24} vertical />
-      <Text>Welcome to Runwae🎉</Text>
-      <Spacer size={24} vertical />
-
-      <Text>Create an account or <Link href="/(auth)/login" style={styles.link}>log in</Link> here.</Text>
-      <Spacer size={24} vertical />
-
-      <TextInput
-        label="E-mail Address"
-        isRequired
-        requiredType="asterisk"
-        placeholder="Enter your email"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoComplete="email"
-        autoCorrect={false}
-        autoFocus={true}
-        returnKeyType="next"
-        onChangeText={setEmail}
-        style={styles.input}
-      />
-      <Spacer size={16} vertical />
-      <TextInput
-        label="Password"
-        isRequired
-        requiredType="asterisk"
-        placeholder="Enter your password"
-        keyboardType="default"
-        autoCapitalize="none"
-        autoComplete="password"
-        autoCorrect={false}
-        secureTextEntry={true}
-        returnKeyType="done"
-        onChangeText={setPassword}
-        style={styles.input}
-      />
-
-
-      <Spacer size={40} vertical />
-      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-        {isLoading ? (
-          <ActivityIndicator size={24} color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Sign Up</Text>
-        )}
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.linkButton}
-        onPress={() => router.push("/(auth)/signup")}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        className="flex-1 px-[20px] bg-white"
       >
-        <Text style={styles.linkButtonText}>
-          Already have an account?{" "}
-          <Text style={styles.linkButtonTextBold}>Sign In</Text>
-        </Text>
-      </TouchableOpacity>
+        <View style={{ paddingTop: insets.top + 24 }}>
+          <Spacer size={24} vertical />
+          <Text
+            style={{ fontFamily: "BricolageGrotesque-ExtraBold" }}
+            className="text-3xl font-bold"
+          >
+            Welcome to{"\n"}Runwae 🎉
+          </Text>
+          <Spacer size={5} vertical />
 
+          <Text className="text-gray-400">
+            Sign up for an account or{" "}
+            <Link href="/(auth)/login" className="text-primary underline">
+              log in
+            </Link>{" "}
+            here.
+          </Text>
+          <Spacer size={50} vertical />
 
-      </KeyboardAwareScrollView>
-      <KeyboardToolbar />
+          <CustomTextInput
+            label="Full Name"
+            placeholder="John Doe"
+            value={formData.fullName}
+            onChangeText={(value) => handleInputChange("fullName", value)}
+            error={errors.fullName}
+          />
+
+          <Spacer size={16} vertical />
+
+          <CustomTextInput
+            label="Email address"
+            keyboardType="email-address"
+            placeholder="example@email.com"
+            value={formData.email}
+            onChangeText={(value) => handleInputChange("email", value)}
+            error={errors.email}
+          />
+
+          <Spacer size={16} vertical />
+
+          <CustomTextInput
+            label="Password"
+            isPassword
+            value={formData.password}
+            onChangeText={(value) => handleInputChange("password", value)}
+            error={errors.password}
+          />
+
+          <Spacer size={16} vertical />
+
+          <Spacer size={20} vertical />
+          <TouchableOpacity
+            onPress={handleSubmit}
+            disabled={isSubmitting || authLoading}
+            className="bg-primary h-[45px] rounded-full w-full flex items-center justify-center disabled:opacity-50"
+          >
+            {isSubmitting || authLoading ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <Text className="text-white font-medium text-base">Sign Up</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </>
   );
 };
@@ -112,48 +171,8 @@ const SignUpScreen = () => {
 export default SignUpScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff'
-  },
-  contentContainer: {
-    flexGrow: 1,
-    paddingHorizontal: 16,
-    paddingBottom: 40
-  },
-  link: {
-    color: '#FF2E92',
-    textDecorationLine: 'underline',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 8,
-    padding: 16,
-    marginTop: 4
-  },
-
-  button: {
-    backgroundColor: "#000",
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  linkButton: {
-    marginTop: 24,
-    alignItems: "center",
-  },
-  linkButtonText: {
-    color: "#666",
-    fontSize: 14,
-  },
-  linkButtonTextBold: {
-    fontWeight: "600",
-    color: "#000",
+  forgotPasswordContainer: {
+    alignItems: "flex-end",
+    width: "100%",
   },
 });
